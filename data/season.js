@@ -297,4 +297,3 @@ const SEASON = {
   {"id":"close","lane":"ops","d":"2027-11-20","n":{"zh":"結案與交接","en":"Close-out and handover"},"who":{"zh":"Ops","en":"Ops"},"reads":{"zh":"下一年","en":"Next year"},"loc":"90 Archive","tpl":"Handover","rule":{"zh":"範本去識別後回收，封存，跑一次 Drive 健檢。","en":"Templates recovered once de-identified, archive sealed, Drive audit run."}}
  ]
 };
-

@@ -1,7 +1,8 @@
 name: Sync season data from the System site
 
-# The hub copies its nodes, seats, rules and folders from GEMS-iGEM-SYSTEM so nothing is typed twice.
-# This runs every night (03:17 Taipei) and whenever it is started by hand from the Actions tab.
+# The hub copies its milestones, seats, rules and folders from GEMS-iGEM-SYSTEM so nothing is typed twice.
+# Runs every night (03:17 Taipei) and whenever it is started by hand from the Actions tab.
+# If the System data cannot be read or does not look right, the run fails and data/season.js stays as it was.
 on:
   schedule:
     - cron: "17 19 * * *"
@@ -16,11 +17,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Rebuild data/season.js
-        run: node tools/sync-season.js > "$RUNNER_TEMP/season.js" && mv "$RUNNER_TEMP/season.js" data/season.js
+        run: sh tools/sync.sh
       - name: Commit if it changed
         run: |
-          if git diff --quiet; then echo "Season data unchanged."; exit 0; fi
+          if git diff --quiet -- data/season.js; then echo "Season data unchanged."; exit 0; fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -am "Sync season data from the System site"
+          git commit -m "Sync season data from the System site" -- data/season.js
           git push

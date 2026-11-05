@@ -85,6 +85,7 @@
   const weekLabel = mon => !HAS ? "" : mon > LAST ? tx("賽季結束", "Season over") : mon >= W1 ? tx(`第 ${diff(W1, mon) / 7 + 1} 週`, `Week ${diff(W1, mon) / 7 + 1}`) : mon === monday(KICK) ? tx("開季週", "Kickoff week") : tx("開季前", "Pre-season");
   const phaseOn = d => { const hit = PHASES.find(x => d >= x.s && d <= x.e); return hit && d <= LAST ? L(hit.n) : ""; };
   const shadeOn = d => OFF.find(x => d >= x.s && d <= x.e);
+  const inSeason = mon => HAS && mon >= monday(KICK) && mon <= LAST;
   const weekEntry = mon => WKS.find(w => w.from <= mon && (isDate(w.to) ? w.to : addDays(w.from, 6)) >= mon);
   const nextNode = () => NODES.find(n => n.date >= TODAY);
 
@@ -123,7 +124,7 @@
   const more = (href, label, out) => `<a class="more" href="${esc(href)}"${out ? EXT : ""}>${esc(label)} ${out ? "↗" : "→"}</a>`;
   const empty = t => `<p class="empty">${esc(t)}</p>`;
   const tile = (title, right, body, cls = "") => `<article class="tile ${cls}"><header class="th"><h2>${esc(title)}</h2>${right || ""}</header>${body}</article>`;
-  const head = (eyebrow, h1, lede, extra = "") => `<section class="ph"><div class="wrap"><p class="eyebrow">${eyebrow.filter(Boolean).map(e => `<span>${esc(e)}</span>`).join("")}</p><h1 class="h1">${h1}</h1>${lede ? `<p class="lede">${lede}</p>` : ""}${extra}</div></section>`;
+  const head = (eyebrow, h1, lede, extra = "") => `<section class="ph"><div class="wrap"><p class="eyebrow">${eyebrow.filter(Boolean).map(esc).join("\u00A0· ")}</p><h1 class="h1">${h1}</h1>${lede ? `<p class="lede">${lede}</p>` : ""}${extra}</div></section>`;
   const sec = (body, cls = "") => `<section class="sec ${cls}"><div class="wrap">${body}</div></section>`;
   // An owner is "all", "staff", "adv", a seat code from the System site, or plain words { zh, en }.
   const who = c => !c ? "" : typeof c === "object" ? L(c) : c === "all" ? tx("全隊", "Everyone") : c === "staff" ? tx("老師", "Instructors") : c === "adv" ? "Advisor" : ROLE[c] ? L(ROLE[c].name) : String(c);
@@ -148,7 +149,7 @@
   ].map(([k, href, zh, en]) => ({ k, href, zh, en }));
   const SITE = () => tx("GEMS 2027 專案中心", "GEMS 2027 Project Hub");
   function shell() {
-    $("#nav").innerHTML = `<div class="nav__in">
+    $("#nav").innerHTML = `<a class="skip" href="#main">${tx("跳到內容", "Skip to content")}</a><div class="nav__in">
       <a class="brand" href="index.html">${MARK}<b>${SITE()}</b></a>
       <nav class="nav__links" aria-label="${tx("頁面", "Pages")}">${NAV.map(p => `<a href="${p.href}"${p.k === PAGE ? ' aria-current="page"' : ""}>${esc(L(p))}</a>`).join("")}</nav>
       <div class="nav__act">
@@ -189,9 +190,10 @@
   }
 
   // ---------- shared lists ----------
-  const goalsHTML = w => w && w.goals.some(g => g && g.t)
+  const goalsHTML = (w, inSeason) => w && w.goals.some(g => g && g.t)
     ? `<ul class="list goals">${w.goals.filter(g => g && g.t).map(g => `<li class="${g.done ? "is-done" : ""}">${g.done ? ic("check") : "<i></i>"}<div><p>${esc(L(g.t))}</p><small>${[g.done ? tx("完成", "Done") : "", whoHTML(g.owner), g.link ? linkTo(g.link) : ""].filter(Boolean).join(" · ")}</small></div></li>`).join("")}</ul>`
-    : empty(tx("這一週的目標還沒寫。", "No goals written for this week yet."));
+    : empty(tx("這一週的目標還沒寫。", "No goals written for this week yet.")) + (inSeason ? routine() : "");
+  const routine = () => { const ch = sea("chores").filter(c => c.t); return ch.length ? `<p class="k">${tx("每週固定要做的事", "What everyone does every week")}</p><ul class="list goals">${ch.map(c => `<li><i></i><div><p>${esc(L(c.t))}</p><small>${[L(c.who), c.min ? `${c.min} ${tx("分鐘", "min")}` : ""].filter(Boolean).map(esc).join(" · ")}</small></div></li>`).join("")}</ul>` : ""; };
   const TAG = { team: { zh: "全隊", en: "Team" }, schedule: { zh: "時程", en: "Schedule" }, homework: { zh: "作業", en: "Homework" }, system: { zh: "系統", en: "System" }, igem: { zh: "iGEM", en: "iGEM" } };
   const linkRow = (l, full) => {
     const d = full ? linkD(l) : "", a = !l.url ? tx("尚未開放", "Not open yet") : l.access === "team" ? tx("團隊帳號", "Team account") : full ? "" : tx("公開", "Public");
@@ -215,7 +217,7 @@
     const mon = monday(TODAY), w = weekEntry(mon), up = NODES.filter(n => n.date >= TODAY), next = up[0], days = next ? diff(TODAY, next.date) : 0;
     const due = HW.filter(h => hwLive(h) && !hwDone[h.id]).sort((a, b) => a.due.localeCompare(b.due)).slice(0, 4);
     const news = [...ANN.filter(a => a.pin), ...ANN.filter(a => !a.pin)].slice(0, 3);
-    const goals = tile(`${tx("本週目標", "This week")} · ${md(mon)} – ${md(addDays(mon, 6))}`, more("week.html", tx("看整週", "The week")), goalsHTML(w));
+    const goals = tile(`${tx("本週目標", "This week")} · ${md(mon)} – ${md(addDays(mon, 6))}`, more("week.html", tx("看整週", "The week")), goalsHTML(w, inSeason(mon)));
     const dueT = tile(tx("接下來要交的", "Due next"), more("homework.html", tx("全部作業", "All homework")), due.length ? `<ul class="list list--date">${due.map(h => `<li><time datetime="${h.due}"${diff(TODAY, h.due) <= 3 ? ' class="is-soon"' : ""}>${esc(md(h.due))}</time><div><a href="homework.html#${esc(h.id)}">${esc(L(h.t))}</a><small>${esc(wd(h.due))} · ${esc(rel(h.due))}${h.optional ? ` · ${tx("選做", "optional")}` : ""}</small></div></li>`).join("")}</ul>` : empty(tx("目前沒有要交的作業。", "Nothing is due right now.")));
     const nextT = tile(tx("下一個里程碑", "Next milestone"), "", next ? `<p class="next__n">${days === 0 ? `<b>${tx("今天", "Today")}</b>` : `<b class="tn">${days}</b><span>${tx("天後", days === 1 ? "day" : "days")}</span>`}</p>
           <h3>${esc(L(next.t))}</h3><p class="next__d">${esc(nodeWhen(next))} · ${esc(L(lane(next)))}</p>
@@ -224,7 +226,8 @@
           ${more("milestones.html", tx("全部里程碑", "All milestones"))}` : empty(tx("這一季的里程碑都走完了。", "Every milestone this season has passed.")), "tile--dark next");
     const newsT = tile(tx("公告", "News"), more("announcements.html", tx("全部公告", "All news")), news.length ? `<ul class="list list--date">${news.map(a => `<li><time datetime="${a.d}">${esc(md(a.d))}</time><a href="announcements.html#a-${a.id}">${esc(L(a.t))}</a></li>`).join("")}</ul>` : empty(tx("還沒有公告。", "No news yet.")));
     // Two stacked columns: on a phone they read goals, due, next milestone, news.
-    return sec(`<div class="cols"><div>${goals}${dueT}</div><div>${nextT}${newsT}</div></div>`, "sec--first");
+    const over = HAS && TODAY > LAST;
+    return sec(`<div class="cols"><div>${over && !w ? "" : goals}${dueT}</div><div>${next ? nextT : ""}${newsT}</div></div>`, "sec--first");
   }, () => {
     const quick = LNK.filter(isPinned);
     return quick.length ? sec(`<div class="h2row"><h2 class="h2">${tx("常用連結", "Quick links")}</h2>${more("links.html", tx("全部連結", "All links"))}</div><ul class="lks lks--3">${quick.map(l => linkRow(l)).join("")}</ul>
@@ -247,7 +250,7 @@
     return sec(`<div class="strip">${days.map(d => `<div class="sday${d === TODAY ? " is-today" : ""}${shadeOn(d) ? " is-off" : ""}"><span>${esc(wd(d))}</span><b class="tn">${utc(d).getUTCDate()}</b><p>${dayEvents(d).map(e => `<i style="--c:${e.c}"></i>`).join("")}</p></div>`).join("")}</div>
       ${off.length ? `<p class="note">${esc(off.map(b => `${L(b.now || b.n)}（${md(b.s)} – ${md(b.e)}）`).join(tx("；", "; ")))}</p>` : ""}
       <div class="grid" style="margin-top:20px">
-      ${tile(tx("目標", "Goals"), "", goalsHTML(w), "c7")}
+      ${tile(tx("目標", "Goals"), "", goalsHTML(w, inSeason(mon)), "c7")}
       ${tile(tx("這週的日子", "Dates this week"), "", evs.length ? `<ul class="list list--date">${evs.map(e => `<li><time datetime="${e.d}">${esc(md(e.d))}</time><div>${e.href ? `<a href="${e.href}">${esc(e.t)}</a>` : `<span>${esc(e.t)}</span>`}<small>${esc(wd(e.d))} · ${esc(e.k)}</small></div></li>`).join("")}</ul>` : empty(tx("這週沒有里程碑、作業截止或固定時段。", "No milestone, homework deadline or session this week.")), "c5")}
       </div><p class="note">${tx("每週都要做的事寫在", "What everyone does every week is in the")} <a href="guide.html#weekly">${tx("指南", "Guide")}</a>${tx("。", ".")}</p>`, "sec--first");
   }];
@@ -444,6 +447,7 @@
   function render() {
     safe(shell, "shell");
     $("#main").innerHTML = problems() + (P[PAGE] || P.home).map((f, i) => safe(f, `${PAGE}#${i + 1}`)).join("");
+    const cur = $(".nav__links [aria-current]"); if (cur) cur.parentElement.scrollLeft = cur.offsetLeft - (cur.parentElement.clientWidth - cur.offsetWidth) / 2;
     $$(".rb").forEach(el => { const t = $(".rb__today", el); if (t) el.scrollLeft = t.offsetLeft - el.clientWidth / 2; });
   }
   function gotoHash() {

@@ -1,20 +1,22 @@
-// Every link the team uses, in one place. The Links page, the search box and the quick links
-// on Today all read this file.
-//   { id: "handbook",                    short and permanent: other files point at it
-//     g: "<group id>", t: { zh, en } | "Same in both", d: { zh, en }?,
-//     url: "https://…" | "",             leave "" when the place does not exist yet
-//     kind: "site" | "folder" | "doc" | "sheet" | "repo" | "igem" | "tool",
-//     access: "public" | "team" | "soon",  team = needs the team Google account; soon = not open yet
-//     pin: true? }                       shows on Today for everyone
-// A Drive link gives nothing away by itself: Drive checks the account. Never set a linked folder
-// to "anyone with the link", and never add an Ops (instructor-only) link or a Discord invite here.
+// Every link the team uses. The Links page, the search and the quick links on Today all read this file.
+// To add one, copy a line into the right group and push.
+//   { id: "handbook",              short and permanent: other files point at it
+//     g: "<group id below>",
+//     t: { zh, en },               or "Same in both languages"
+//     d: { zh, en },               optional: one line on what it is
+//     url: "https://…",            leave "" while the place does not exist yet: it shows as "not open yet"
+//     kind: "site" | "folder" | "doc" | "sheet" | "repo" | "igem" | "tool",     picks the icon
+//     access: "public" | "team",   team = opens only with the team Google account
+//     pin: true }                  optional: shows on Today for everyone
+// A Drive link gives nothing away by itself: Drive checks the account. Never set a linked folder to
+// "anyone with the link", and never add an Ops (instructor-only) link or a Discord invite here.
 const DRIVE_ROOT = "https://drive.google.com/drive/folders/";
 const GDOC = "https://docs.google.com/document/d/", GSHEET = "https://docs.google.com/spreadsheets/d/";
 const SYS = "https://timmy97-tw.github.io/GEMS-iGEM-SYSTEM/";
 const PAGES_GH = "https://timmy97-tw.github.io/";
 
 const LINK_GROUPS = [
-  { id: "start", name: { zh: "從這裡開始", en: "Start here" }, note: { zh: "新人第一天要開的五個地方。", en: "The five places to open on day one." } },
+  { id: "start", name: { zh: "從這裡開始", en: "Start here" }, note: { zh: "新人第一天會用到的地方。", en: "What a newcomer opens on day one." } },
   { id: "drive", name: { zh: "Drive 資料夾", en: "Drive folders" }, note: { zh: "編號就是順序。頂層不放零散檔案。", en: "The numbers are the order. No loose files at the top level." } },
   { id: "sheets", name: { zh: "試算表", en: "Workbooks" }, note: { zh: "有 ID 的紀錄都在這些表裡。", en: "Every record with an ID lives in one of these." } },
   { id: "templates", name: { zh: "範本", en: "Templates" }, note: { zh: "先複製再填，不要直接改範本。", en: "Make a copy, then fill it in. Never edit the template itself." } },
@@ -27,12 +29,14 @@ const LINK_GROUPS = [
 
 const LINKS = [
   // ---- start here
-  { id: "handbook", g: "start", t: { zh: "GEMS 2027 Handbook", en: "GEMS 2027 Handbook" }, d: { zh: "全隊唯一的規則來源。First Class 前讀完。", en: "The team’s one source of rules. Read it before First Class." }, url: GDOC + "1urBPIGF-J6zSFlsPXs3e80PSDqekUzzjE4VNzc43EXY/edit", kind: "doc", access: "team", pin: true },
+  { id: "form-reading", g: "start", t: { zh: "閱讀卡表單", en: "Reading card form" }, d: { zh: "每週一張。11/29 前開放。", en: "One a week. Opens by 29 Nov." }, url: "", kind: "doc", access: "team", pin: true },
+  { id: "form-checkin", g: "start", t: { zh: "每週回報表單", en: "Weekly check-in form" }, d: { zh: "每次會議或活動結束前交；請假也用這張。11/29 前開放。", en: "Handed in before each meeting or session ends; also used to take leave. Opens by 29 Nov." }, url: "", kind: "doc", access: "team", pin: true },
+  { id: "handbook", g: "start", t: { zh: "GEMS 2027 Handbook", en: "GEMS 2027 Handbook" }, d: { zh: "全隊唯一的規則來源。First Class 前讀完。", en: "The team’s one source of rules. Read it before First Class." }, url: GDOC + "1urBPIGF-J6zSFlsPXs3e80PSDqekUzzjE4VNzc43EXY/edit", kind: "doc", access: "team" },
   { id: "hubsheet", g: "start", t: { zh: "Hub 試算表", en: "Hub Sheet" }, d: { zh: "任務、決議、Run、節點狀態。每週更新自己的列。", en: "Tasks, decisions, runs and node status. Update your own rows each week." }, url: GSHEET + "1JL_5vT03H_NOtCTXH2Z4hQq-O1uNX1AaqSt8o24wLUw/edit", kind: "sheet", access: "team", pin: true },
-  { id: "research", g: "start", t: { zh: "Research 工作簿", en: "Research workbook" }, d: { zh: "研究問題、Paper Card 和影響紀錄。全隊一份。", en: "Research questions, Paper Cards and the impact log. One for the whole team." }, url: GSHEET + "1itRMRoujMntpyJd9TWXTB-UXViBqoXhMVXfqH7ptzsg/edit", kind: "sheet", access: "team", pin: true },
+  { id: "research", g: "start", t: { zh: "Research 工作簿", en: "Research workbook" }, d: { zh: "研究問題和閱讀卡。全隊一份。", en: "Research questions and reading cards. One for the whole team." }, url: GSHEET + "1itRMRoujMntpyJd9TWXTB-UXViBqoXhMVXfqH7ptzsg/edit", kind: "sheet", access: "team" },
   { id: "drive-root", g: "start", t: { zh: "團隊 Drive：GEMS iGEM 2027", en: "Team Drive: GEMS iGEM 2027" }, d: { zh: "所有文件、數據、圖和定稿。", en: "All documents, data, figures and finals." }, url: DRIVE_ROOT + "1X88uV_n3cnuQhGby20sjkMbcbLrk-LDt", kind: "folder", access: "team", pin: true },
-  { id: "discord", g: "start", t: "Discord", d: { zh: "討論、通知和求助。決定和待辦要寫回 Hub 試算表。邀請連結私下寄送，11/29 開啟。", en: "Discussion, notices and asking for help. Decisions and to-dos go back to the Hub Sheet. The invite is sent privately; it opens on 29 Nov." }, url: "", kind: "tool", access: "soon", pin: true },
-  { id: "file-rules", g: "start", t: { zh: "File Rules 檔案規則", en: "File Rules" }, d: { zh: "每種檔案叫什麼名字、放哪裡、誰能改。", en: "What each file is called, where it goes and who can edit it." }, url: GDOC + "1CClKgTa4z3qbN4QW4hV_qulLzlNhxZLz_S8d1nmLwiU/edit", kind: "doc", access: "team", pin: true },
+  { id: "discord", g: "start", t: "Discord", d: { zh: "討論、通知和求助。決定和待辦要寫回 Hub 試算表。邀請連結私下寄送，11/29 開啟。", en: "Discussion, notices and asking for help. Decisions and to-dos go back to the Hub Sheet. The invite is sent privately; it opens on 29 Nov." }, url: "", kind: "tool", access: "team", pin: true },
+  { id: "file-rules", g: "start", t: { zh: "File Rules 檔案規則", en: "File Rules" }, d: { zh: "每種檔案叫什麼名字、放哪裡、誰能改。", en: "What each file is called, where it goes and who can edit it." }, url: GDOC + "1CClKgTa4z3qbN4QW4hV_qulLzlNhxZLz_S8d1nmLwiU/edit", kind: "doc", access: "team" },
   { id: "drive-readme", g: "start", t: { zh: "Drive 的 README", en: "The Drive README" }, d: { zh: "一頁看懂整個 Drive。", en: "The whole Drive on one page." }, url: GDOC + "1E1xeEnzNbV30j7ot__vxhc7RjGUuOjbSA6QyrF_Cg3w/edit", kind: "doc", access: "team" },
 
   // ---- Drive folders. Descriptions come from the System site by folder name.
@@ -94,7 +98,7 @@ const LINKS = [
 
   // ---- wiki
   { id: "wiki-template", g: "wiki", t: { zh: "2027 Wiki 範本 repo", en: "2027 wiki template repo" }, d: { zh: "今年 wiki 的起點。目前是私有 repo，需要 GitHub 權限。", en: "Where this year’s wiki starts. A private repo for now; needs GitHub access." }, url: "https://github.com/Timmy97-TW/GEMS-iGEM-2027-wiki-template", kind: "repo", access: "team" },
-  { id: "wiki-2027", g: "wiki", t: { zh: "2027 官方 wiki", en: "2027 official wiki" }, d: { zh: "iGEM 開放 2027 隊伍 repo 後才有。", en: "Exists once iGEM opens the 2027 team repositories." }, url: "", kind: "igem", access: "soon" },
+  { id: "wiki-2027", g: "wiki", t: { zh: "2027 官方 wiki", en: "2027 official wiki" }, d: { zh: "iGEM 開放 2027 隊伍 repo 後才有。", en: "Exists once iGEM opens the 2027 team repositories." }, url: "", kind: "igem", access: "team" },
   { id: "wiki-2026", g: "wiki", t: { zh: "2026 ReLEAF wiki（官方）", en: "2026 ReLEAF wiki (official)" }, d: { zh: "去年的成品。看一頁完整的 wiki 長什麼樣子。", en: "Last year’s finished wiki. See what a complete page looks like." }, url: "https://2026.igem.wiki/gems-taiwan/", kind: "igem", access: "public" },
   { id: "wiki-structure", g: "wiki", t: { zh: "Wiki 每一頁怎麼寫", en: "How to write each wiki page" }, d: { zh: "頁面結構、評審手冊的評分項、得獎隊伍怎麼排同一頁。", en: "Page structures, the judging rubrics and how prize winners laid out the same pages." }, url: PAGES_GH + "wiki-structure-analysis/", kind: "site", access: "public" },
 
@@ -113,7 +117,7 @@ const LINKS = [
   { id: "igem-jamboree", g: "igem", t: { zh: "Grand Jamboree", en: "Grand Jamboree" }, url: "https://jamboree.igem.org/", kind: "igem", access: "public" },
 
   // ---- from past seasons
-  { id: "pitch", g: "learn", t: { zh: "題目評估架構：十道門", en: "Project Pitch Framework: ten gates" }, d: { zh: "二月定題前，一個題目要過的十道門，附 ReLEAF 完整範例。", en: "Ten gates a topic passes before committing in February, with ReLEAF worked through." }, url: PAGES_GH + "2027-GEMS-Project-Pitch-Framework/", kind: "site", access: "public", pin: true },
+  { id: "pitch", g: "learn", t: { zh: "題目評估架構：十道門", en: "Project Pitch Framework: ten gates" }, d: { zh: "二月定題前，一個題目要過的十道門，附 ReLEAF 完整範例。", en: "Ten gates a topic passes before committing in February, with ReLEAF worked through." }, url: PAGES_GH + "2027-GEMS-Project-Pitch-Framework/", kind: "site", access: "public" },
   { id: "decoder", g: "learn", t: { zh: "評審手冊解碼", en: "Judge Handbook decoder" }, d: { zh: "評審票上每一行在問什麼，wiki 要怎麼對應。", en: "What each scored line of the ballot asks, and what the wiki must show for it." }, url: PAGES_GH + "igem-2026-judging-decoder/", kind: "site", access: "public" },
   { id: "titles", g: "learn", t: { zh: "把結論寫在標題", en: "Say it in the title" }, d: { zh: "投影片標題和結果圖怎麼寫才清楚。", en: "How to write slide titles and results slides that say something." }, url: PAGES_GH + "say-it-in-the-title/", kind: "site", access: "public" },
   { id: "stakeholders", g: "learn", t: { zh: "利害關係人地圖 2022–2026", en: "Stakeholder atlas 2022–2026" }, d: { zh: "歷年合作過的專家、實驗室、機關、公司、學校和農民。", en: "Every expert, lab, agency, company, school and farmer the team has worked with." }, url: PAGES_GH + "GEMS_Stakeholder/", kind: "site", access: "public" },
@@ -122,8 +126,8 @@ const LINKS = [
   { id: "jamboree-2026", g: "learn", t: { zh: "2026 前進巴黎", en: "2026 road to Paris" }, d: { zh: "去年最後五週的行事曆、巴黎行程和攤位排班。", en: "Last year’s final five weeks: calendar, Paris plan and booth shifts." }, url: PAGES_GH + "releaf-jamboree/", kind: "site", access: "public" },
 
   // ---- tools
-  { id: "library", g: "tools", t: { zh: "共用文獻庫（Zotero）", en: "Shared library (Zotero)" }, d: { zh: "全隊只有一個庫，一種引用格式。開季時開放。", en: "One library for the whole team and one citation style. Opens with the season." }, url: "", kind: "tool", access: "soon" },
-  { id: "calendar", g: "tools", t: { zh: "團隊行事曆", en: "Team calendar" }, d: { zh: "11/25 系統完成時上線。在那之前看里程碑頁。", en: "Live when the system is ready on 25 Nov. Until then, use the Milestones page." }, url: "", kind: "tool", access: "soon" },
-  { id: "github-org", g: "tools", t: { zh: "團隊 GitHub", en: "Team GitHub" }, d: { zh: "程式碼、韌體、wiki 原始碼和交接文。程式不進 Drive。", en: "Code, firmware, wiki source and handover notes. Code stays out of Drive." }, url: "", kind: "repo", access: "soon" },
+  { id: "library", g: "tools", t: { zh: "共用文獻庫（Zotero）", en: "Shared library (Zotero)" }, d: { zh: "全隊只有一個庫，一種引用格式。開季時開放。", en: "One library for the whole team and one citation style. Opens with the season." }, url: "", kind: "tool", access: "team" },
+  { id: "calendar", g: "tools", t: { zh: "團隊行事曆", en: "Team calendar" }, d: { zh: "11/25 系統完成時上線。在那之前看里程碑頁。", en: "Live when the system is ready on 25 Nov. Until then, use the Milestones page." }, url: "", kind: "tool", access: "team" },
+  { id: "github-org", g: "tools", t: { zh: "團隊 GitHub", en: "Team GitHub" }, d: { zh: "程式碼、韌體、wiki 原始碼和交接文。程式不進 Drive。", en: "Code, firmware, wiki source and handover notes. Code stays out of Drive." }, url: "", kind: "repo", access: "team" },
   { id: "hub-repo", g: "tools", t: { zh: "這個網站的 repo", en: "This site’s repo" }, d: { zh: "發公告、改每週目標、加連結，都是改 data 資料夾裡的一行。", en: "Posting a notice, changing weekly goals or adding a link is one line in the data folder." }, url: "https://github.com/Timmy97-TW/GEMS-iGEM-2027-Hub", kind: "repo", access: "public" }
 ];

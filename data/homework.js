@@ -1,32 +1,29 @@
-// Homework and assignments. Order does not matter; the page sorts by due date.
-//   { id: "HW05",                        never reuse an id: links and ticks point at it
-//     t: { zh, en }, body: { zh, en },
-//     group: "all" | "wet" | "dry" | "hw" | "hp" | "wiki" | "media" | "adv",
-//     assigned: "YYYY-MM-DD", due: "YYYY-MM-DD",
-//     node: "N02"?,                      the milestone it feeds
-//     submit: { link: "<id in links.js>"?, how: { zh, en } },   where the finished work goes
-//     review: "<seat code>" | "staff"?,  who reads it
-//     optional: true? }
-// Grades, comments on a person's work and who has or has not handed in stay out of this file.
+// Homework. To set one, add an entry and push. Order does not matter: the page sorts by due date.
+//   { id: "HW05",                  never reuse an id: links and "handed in" ticks point at it
+//     t: { zh, en },               the title
+//     body: { zh, en },            what to do, in two or three sentences
+//     due: "YYYY-MM-DD",
+//     assigned: "YYYY-MM-DD",      optional: the page shows "set on …" until that day
+//     group: "all" | "wet" | "dry" | "hw" | "hp" | "wiki" | "media",
+//     submit: { how: { zh, en }, link: "<id in links.js>" },    where the finished work goes
+//     review: "staff" | "<seat code>" | { zh, en },             who reads it
+//     optional: true }
+// This file is public: no grades, no comments on anyone's work, nothing about who has handed in.
 const HOMEWORK = [
-  { id: "HW01",
+  { id: "HW01", group: "all", due: "2026-11-29",
     t: { zh: "加入團隊 Discord", en: "Join the team Discord" },
-    body: { zh: "邀請連結會私下寄給你，不會放在這個公開網站。11/29 當天會在 Discord 語音說明研究怎麼分流，並錄下來。", en: "The invite is sent to you privately and is never posted on this public site. On 29 Nov the research triage is explained once on Discord voice, and recorded." },
-    group: "all", assigned: "2026-11-29", due: "2026-11-29", node: "N01",
-    submit: { link: "discord", how: { zh: "加入伺服器就算完成", en: "Joining the server completes it" } }, review: "OPS" },
-  { id: "HW02",
-    t: { zh: "第 1 張 Paper Card", en: "Your first Paper Card" },
-    body: { zh: "讀一篇，填一張卡。第一張可以是綜述、政府報告或往年隊伍的 wiki。先看 Research 工作簿的 Questions 分頁，挑一題你想回答的。", en: "Read one source and fill in one card. The first may be a review, a government report or a past team’s wiki. Start from the Questions tab of the Research workbook and pick one you want to answer." },
-    group: "all", assigned: "2026-11-29", due: "2026-12-06", node: "N01",
-    submit: { link: "research", how: { zh: "Research 工作簿 → Papers 分頁，一篇一列", en: "Research workbook → Papers tab, one row per source" } }, review: "staff" },
-  { id: "HW03",
-    t: { zh: "讀完 Handbook 並確認", en: "Read the Handbook and confirm" },
-    body: { zh: "Handbook 是全隊唯一的規則來源：每週要做什麼、ID 怎麼用、檔案放哪裡、哪些事有關卡。First Class 當天全員確認。", en: "The Handbook is the team’s one source of rules: what to do each week, how IDs work, where files go and which steps have gates. Everyone confirms it at First Class." },
-    group: "all", assigned: "2026-11-29", due: "2026-12-26", node: "N02",
-    submit: { link: "handbook", how: { zh: "First Class 當天確認", en: "Confirmed in person at First Class" } }, review: "OPS" },
-  { id: "HW04", optional: true,
+    body: { zh: "邀請連結會私下寄給你，不會放在這個公開網站。", en: "The invite is sent to you privately. It is never posted on this public site." },
+    submit: { how: { zh: "加入伺服器就算完成", en: "Joining the server completes it" } }, review: "staff" },
+  { id: "HW02", group: "all", due: "2026-11-29",
+    t: { zh: "第 1 張閱讀卡", en: "Your first reading card" },
+    body: { zh: "讀一篇，填一張閱讀卡。第一張可以讀綜述、政府報告或往年隊伍的 wiki。在第一次線上會結束前交出。", en: "Read one source and fill in one reading card. The first may be a review, a government report or a past team’s wiki. Hand it in before the first online meeting ends." },
+    submit: { link: "form-reading", how: { zh: "用表單交：", en: "Hand it in with the form:" } }, review: "staff" },
+  { id: "HW03", group: "all", due: "2026-12-26",
+    t: { zh: "準備 1 分鐘，講你的一張閱讀卡", en: "Prepare one minute on one of your reading cards" },
+    body: { zh: "第一堂實體課上，每個人在小組裡用 1 分鐘講自己的一張卡：讀了什麼、你的判斷、為什麼。日期待確認。", en: "At the first in-person class everyone takes one minute in their group on one card: what you read, your judgement and why. The date is still to be confirmed." },
+    submit: { how: { zh: "當天在小組裡講", en: "Spoken in your group on the day" } }, review: "staff" },
+  { id: "HW04", group: "all", due: "2027-01-23", optional: true,
     t: { zh: "想提題目的人：一題一張 Topic Card", en: "Proposing a topic? One Topic Card per topic" },
-    body: { zh: "題目由老師發展，學生也可以自己提。進 PK 的題目至少要有 3 張 Paper Card，其中至少 1 張是法規、倫理或方法。", en: "Instructors develop the topics, and students may propose their own. A topic needs at least three Paper Cards to enter the PK, at least one on regulation, ethics or method." },
-    group: "all", assigned: "2027-01-02", due: "2027-01-23", node: "N03",
-    submit: { link: "topic-cards", how: { zh: "用 Topic Card 範本，存進 20 Topic／Topic Cards", en: "Use the Topic Card template and save it in 20 Topic / Topic Cards" } }, review: "ITL" }
+    body: { zh: "題目由老師發展，學生也可以自己提。每個候選題目至少要有 3 張閱讀卡，其中至少 1 張是法規、倫理或方法。", en: "Instructors develop the topics, and students may propose their own. Each candidate topic needs at least three reading cards, at least one of them on regulation, ethics or method." },
+    submit: { link: "topic-cards", how: { zh: "用 Topic Card 範本，存進", en: "Use the Topic Card template and save it in" } }, review: "staff" }
 ];

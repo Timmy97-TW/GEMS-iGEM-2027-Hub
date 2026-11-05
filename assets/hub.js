@@ -385,7 +385,9 @@
   ];
   P.guide = [() => {
     const parts = G.map(([id, name, fn]) => ({ id, name, html: safe(fn, "guide#" + id) })).filter(p => p.html);
-    return head([tx("新人先讀這一頁", "New here? Read this first")], tx("指南", "Guide"), tx("每週要做什麼、哪些事不能跳過、每樣東西放哪裡。", "What to do each week, what cannot be skipped and where everything goes."))
+    const sh = linkTo("start-here");
+    return head([tx("新人先讀這一頁", "New here? Read this first")], tx("指南", "Guide"), tx("每週要做什麼、哪些事不能跳過、每樣東西放哪裡。", "What to do each week, what cannot be skipped and where everything goes."),
+      sh ? `<p class="note">${tx("想要一頁印得出來的版本，看 Drive 裡的", "For a one-page version you can print, see")} ${sh}${tx("。", " in the Drive.")}</p>` : "")
       + (parts.length ? `<div class="subnav"><div>${parts.map(p => `<a href="#${p.id}">${esc(tx(...p.name))}</a>`).join("")}</div></div>${parts.map(p => `<section class="gsec" id="${p.id}"><div class="wrap">${p.html}</div></section>`).join("")}` : sec(empty(tx("指南的內容還沒同步過來。", "The guide has not synced yet."))));
   }];
 

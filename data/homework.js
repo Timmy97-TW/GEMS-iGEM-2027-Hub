@@ -16,7 +16,7 @@ const HOMEWORK = [
     submit: { how: { zh: "加入伺服器就算完成", en: "Joining the server completes it" } }, review: "staff" },
   { id: "HW02", group: "all", due: "2026-11-29",
     t: { zh: "第 1 張閱讀卡", en: "Your first reading card" },
-    body: { zh: "讀一篇，填一張閱讀卡。第一張可以讀綜述、政府報告或往年隊伍的 wiki。在第一次線上會結束前交出。", en: "Read one source and fill in one reading card. The first may be a review, a government report or a past team’s wiki. Hand it in before the first online meeting ends." },
+    body: { zh: "在第一次線上會上完成：讀一篇，填一張閱讀卡，會議結束前交出。讀哪一篇，會議上會說。", en: "Done at the first online meeting: read one source, fill in one reading card and hand it in before the meeting ends. You will be told what to read at the meeting." },
     submit: { link: "form-reading", how: { zh: "用表單交：", en: "Hand it in with the form:" } }, review: "staff" },
   { id: "HW03", group: "all", due: "2026-12-26",
     t: { zh: "準備 1 分鐘，講你的一張閱讀卡", en: "Prepare one minute on one of your reading cards" },

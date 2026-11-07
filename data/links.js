@@ -29,16 +29,16 @@ const LINK_GROUPS = [
 
 const LINKS = [
   // ---- start here
-  { id: "start-here", g: "start", t: { zh: "從這裡開始", en: "Start here" }, d: { zh: "一頁：每週的兩件事、第一天做什麼、卡住找誰。目前是草稿。", en: "One page: the two things you do each week, day one and who to ask. A draft for now." }, url: GDOC + "1x-KvfhEvTv-gBTQgk8VKe6zAadoMlcK_33_X4laVeD8/edit", kind: "doc", access: "team", pin: true },
+  { id: "start-here", g: "start", t: { zh: "從這裡開始", en: "Start here" }, d: { zh: "一頁：每週的兩件事、第一天做什麼、卡住找誰。目前是草稿。", en: "One page: the two things you do each week, day one and who to ask. A draft for now." }, url: GDOC + "19KPbN1pkqxslLi7Knj2EBnYpIAOxCKtqjweoWJUE1ro/edit", kind: "doc", access: "team", pin: true },
   { id: "form-reading", g: "start", t: { zh: "閱讀卡表單", en: "Reading card form" }, d: { zh: "每週一張。11/29 前開放。", en: "One a week. Opens by 29 Nov." }, url: "", kind: "doc", access: "team", pin: true },
   { id: "form-checkin", g: "start", t: { zh: "每週回報表單", en: "Weekly check-in form" }, d: { zh: "每次會議或活動結束前交；請假也用這張。11/29 前開放。", en: "Handed in before each meeting or session ends; also used to take leave. Opens by 29 Nov." }, url: "", kind: "doc", access: "team", pin: true },
-  { id: "handbook", g: "start", t: { zh: "GEMS 2027 Handbook", en: "GEMS 2027 Handbook" }, d: { zh: "完整的規則。要查的時候才打開；新人先讀「從這裡開始」。", en: "The full rule book. Open it to look something up; newcomers read Start here first." }, url: GDOC + "1urBPIGF-J6zSFlsPXs3e80PSDqekUzzjE4VNzc43EXY/edit", kind: "doc", access: "team" },
+  { id: "handbook", g: "start", t: { zh: "GEMS 2027 Handbook", en: "GEMS 2027 Handbook" }, d: { zh: "完整的規則。要查的時候才打開；新人先讀「從這裡開始」。", en: "The full rule book. Open it to look something up; newcomers read Start here first." }, url: GDOC + "1i4HpcWgv4E_0WjVAzmoCrO6VGp4vmUQrv4Jtn3rQYYY/edit", kind: "doc", access: "team" },
   { id: "hubsheet", g: "start", t: { zh: "Hub 試算表", en: "Hub Sheet" }, d: { zh: "全隊的紀錄和看板。", en: "The team’s records and dashboard." }, url: GSHEET + "1JL_5vT03H_NOtCTXH2Z4hQq-O1uNX1AaqSt8o24wLUw/edit", kind: "sheet", access: "team", pin: true },
   { id: "research", g: "start", t: { zh: "Research 工作簿", en: "Research workbook" }, d: { zh: "研究問題和閱讀卡。全隊一份。", en: "Research questions and reading cards. One for the whole team." }, url: GSHEET + "1itRMRoujMntpyJd9TWXTB-UXViBqoXhMVXfqH7ptzsg/edit", kind: "sheet", access: "team" },
   { id: "drive-root", g: "start", t: { zh: "團隊 Drive：GEMS iGEM 2027", en: "Team Drive: GEMS iGEM 2027" }, d: { zh: "所有文件、數據、圖和定稿。", en: "All documents, data, figures and finals." }, url: DRIVE_ROOT + "1X88uV_n3cnuQhGby20sjkMbcbLrk-LDt", kind: "folder", access: "team", pin: true },
   { id: "discord", g: "start", t: "Discord", d: { zh: "討論、通知和求助。決定和待辦要寫回 Hub 試算表。邀請連結私下寄送，11/29 開啟。", en: "Discussion, notices and asking for help. Decisions and to-dos go back to the Hub Sheet. The invite is sent privately; it opens on 29 Nov." }, url: "", kind: "tool", access: "team", pin: true },
-  { id: "file-rules", g: "start", t: { zh: "File Rules 檔案規則", en: "File Rules" }, d: { zh: "每種檔案叫什麼名字、放哪裡、誰能改。要查的時候才打開。", en: "What each file is called, where it goes and who can edit it. Open it to look something up." }, url: GDOC + "1CClKgTa4z3qbN4QW4hV_qulLzlNhxZLz_S8d1nmLwiU/edit", kind: "doc", access: "team" },
-  { id: "drive-readme", g: "start", t: { zh: "Drive 的 README", en: "The Drive README" }, d: { zh: "一頁看懂整個 Drive。", en: "The whole Drive on one page." }, url: GDOC + "1E1xeEnzNbV30j7ot__vxhc7RjGUuOjbSA6QyrF_Cg3w/edit", kind: "doc", access: "team" },
+  { id: "file-rules", g: "start", t: { zh: "File Rules 檔案規則", en: "File Rules" }, d: { zh: "每種檔案叫什麼名字、放哪裡、誰能改。要查的時候才打開。", en: "What each file is called, where it goes and who can edit it. Open it to look something up." }, url: GDOC + "1D-qLA7sohVvgvnXXX7lIpiN69eF21Tyh3QcGHkscE5M/edit", kind: "doc", access: "team" },
+  { id: "drive-readme", g: "start", t: { zh: "Drive 的 README", en: "The Drive README" }, d: { zh: "一頁看懂整個 Drive。", en: "The whole Drive on one page." }, url: GDOC + "11b5po6dSQGaQA6QCHpigSNyRYZfXZzOcqSsAB-_aKsg/edit", kind: "doc", access: "team" },
 
   // ---- Drive folders. Descriptions come from the System site by folder name.
   { id: "d00", g: "drive", t: "00 Start Here", url: DRIVE_ROOT + "1C0q5PeH-iqm_9-plYEXXm4KCWwM-pd3u", kind: "folder", access: "team" },
@@ -74,18 +74,18 @@ const LINKS = [
 
   // ---- templates
   { id: "tpl", g: "templates", t: { zh: "所有範本", en: "All templates" }, d: { zh: "00 Start Here／Templates 資料夾。", en: "The 00 Start Here / Templates folder." }, url: DRIVE_ROOT + "1mE1nJkabhK28yuRtsGmP0g64N4CtrfLK", kind: "folder", access: "team" },
-  { id: "tpl-topic", g: "templates", t: { zh: "Topic Card 題目卡", en: "Topic Card" }, url: GDOC + "1ggEhLEHf3ZhP_8rKIrXc5gA97EIjOyy0sljNFH9AYbE/edit", kind: "doc", access: "team" },
-  { id: "tpl-meeting", g: "templates", t: { zh: "Meeting 會議紀錄", en: "Meeting minutes" }, url: GDOC + "1WRMi3lJHtOLvMvg4QjGyE5Augn6cgY5GmRAoPiX_KWg/edit", kind: "doc", access: "team" },
-  { id: "tpl-decision", g: "templates", t: { zh: "Decision Record 決策紀錄", en: "Decision Record" }, url: GDOC + "14kYr8CrCmHnTIjDLrOsQ3TGz1Jks744-Zu73L9a0cuE/edit", kind: "doc", access: "team" },
-  { id: "tpl-run", g: "templates", t: { zh: "Run Record 實驗紀錄", en: "Run Record" }, url: GDOC + "1eby7zsdV1SLuSYiWa76x6ooq2CyeFgJRCzPUCSYhBis/edit", kind: "doc", access: "team" },
+  { id: "tpl-topic", g: "templates", t: { zh: "Topic Card 題目卡", en: "Topic Card" }, url: GDOC + "1mN03XZcvDWMbo4bAXN6jqAH2zgNKg4f4__WOHfzUNA8/edit", kind: "doc", access: "team" },
+  { id: "tpl-meeting", g: "templates", t: { zh: "Meeting 會議紀錄", en: "Meeting minutes" }, url: GDOC + "1551UxskN6h-wh1r-8AXzHlx44sOqLb3r4hz6ro-U9e8/edit", kind: "doc", access: "team" },
+  { id: "tpl-decision", g: "templates", t: { zh: "Decision Record 決策紀錄", en: "Decision Record" }, url: GDOC + "1FOA3pAAb95VhOmDXytCoANT6AUghl9_Umws9pOiEnM8/edit", kind: "doc", access: "team" },
+  { id: "tpl-run", g: "templates", t: { zh: "Run Record 實驗紀錄", en: "Run Record" }, url: GDOC + "1U89jfsP73T4RxSwwm9HCE0HzbesXSeOrdavPKkx1yVk/edit", kind: "doc", access: "team" },
   { id: "tpl-runlog", g: "templates", t: { zh: "Run Log 運算紀錄表", en: "Run Log" }, url: GSHEET + "1pLyMJZHdT_l2_lwNx6gDA42JPQN5r1Q_DahExohSnA0/edit", kind: "sheet", access: "team" },
-  { id: "tpl-sop", g: "templates", t: { zh: "SOP 標準作業程序", en: "SOP" }, url: GDOC + "1G5-heZx5jSbKDOs0bSyfTxnGFSLHnSUTTZ67Z5icKHY/edit", kind: "doc", access: "team" },
-  { id: "tpl-project", g: "templates", t: { zh: "Project Card 專案卡", en: "Project Card" }, url: GDOC + "1ocj1v7OBInM4e9YxR0_2Lu-frOVNO2E9rmNYAVENdeU/edit", kind: "doc", access: "team" },
-  { id: "tpl-interaction", g: "templates", t: { zh: "Interaction 互動紀錄", en: "Interaction record" }, url: GDOC + "1hciqWnTHS574tKT3ihFc4eV0LHRCDtB-rgL1Gb6Llh0/edit", kind: "doc", access: "team" },
-  { id: "tpl-wiki", g: "templates", t: { zh: "Wiki Page Master 頁面主文件", en: "Wiki Page Master" }, url: GDOC + "1ziD7p89-GjLjSt3wfNUwP_xGhdZcwhqCT8Ey8Keke_c/edit", kind: "doc", access: "team" },
-  { id: "tpl-assignment", g: "templates", t: { zh: "Training Assignment 訓練作業", en: "Training Assignment" }, url: GDOC + "1CdI4v0EjzhSUNOdAxUR6YSY3-pZT1j1ZOr1A0faW_ZU/edit", kind: "doc", access: "team" },
-  { id: "tpl-roadmap", g: "templates", t: { zh: "Roadmap 年度路線圖", en: "Roadmap" }, url: GDOC + "1vnIde8iljnM8i3o6OxqvajeU8VXSxQZ809D9I6Vtb3M/edit", kind: "doc", access: "team" },
-  { id: "tpl-mock", g: "templates", t: { zh: "Mock Judging 模擬評審紀錄", en: "Mock Judging record" }, url: GDOC + "1HpiqMAfY3ONQhTCbh-X4L8BOz1hMJBHl8pdN3fAQkRA/edit", kind: "doc", access: "team" },
+  { id: "tpl-sop", g: "templates", t: { zh: "SOP 標準作業程序", en: "SOP" }, url: GDOC + "11JHAoMpXjYB7X5nRm5e5bEeQHEDRUR-C_B3FkIRbUwU/edit", kind: "doc", access: "team" },
+  { id: "tpl-project", g: "templates", t: { zh: "Project Card 專案卡", en: "Project Card" }, url: GDOC + "1pIOxZQjBunRVsdGlWZFZgmOeO3RkVqyOeCMFjuwh-fM/edit", kind: "doc", access: "team" },
+  { id: "tpl-interaction", g: "templates", t: { zh: "Interaction 互動紀錄", en: "Interaction record" }, url: GDOC + "1YoF7_sBkjgcyiFePI8aeqONn2Wm0aN7A_r-OiciFWfY/edit", kind: "doc", access: "team" },
+  { id: "tpl-wiki", g: "templates", t: { zh: "Wiki Page Master 頁面主文件", en: "Wiki Page Master" }, url: GDOC + "1fdGaQXpx3EqaKhDGcAMDK_0shwhytR_MVyEHhWAgQqY/edit", kind: "doc", access: "team" },
+  { id: "tpl-assignment", g: "templates", t: { zh: "Training Assignment 訓練作業", en: "Training Assignment" }, url: GDOC + "1CtENzgSerwZF4qy8jVQa8bqirFtzEi_T2YaYAqKPQhk/edit", kind: "doc", access: "team" },
+  { id: "tpl-roadmap", g: "templates", t: { zh: "Roadmap 年度路線圖", en: "Roadmap" }, url: GDOC + "1k_xxbcSMB0HM9xsPk_dYu2l7-WxIh4j05ygoiNcy5o8/edit", kind: "doc", access: "team" },
+  { id: "tpl-mock", g: "templates", t: { zh: "Mock Judging 模擬評審紀錄", en: "Mock Judging record" }, url: GDOC + "1b5t-ks3Ho5D6LfPVZkyFtmf1-_3R_m-I06y3yJ6qPtU/edit", kind: "doc", access: "team" },
 
   // ---- the System site
   { id: "sys-home", g: "system", t: { zh: "系統網站：今天", en: "System site: Today" }, d: { zh: "下一個節點和最新的系統更新。", en: "The next node and the latest system updates." }, url: SYS, kind: "site", access: "public" },

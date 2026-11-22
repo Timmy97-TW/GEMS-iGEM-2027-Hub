@@ -160,7 +160,7 @@
     $("#foot").innerHTML = `<div class="foot__in">
       <div><h4>${SITE()}</h4>
         <p>${tx("GEMS Taiwan 2027 iGEM 隊的入口。", "The front door for the GEMS Taiwan 2027 iGEM team.")}</p>
-        <p>${tx("這是公開網站，不放姓名、個人進度、評量和聯絡方式。時程與規則每天從系統網站同步；標 ? 的日期是推估。", "This site is public: no names, individual progress, reviews or contact details. The schedule and rules sync daily from the System site; dates marked ? are estimates.")}</p></div>
+        <p>${tx("這是公開網站。貢獻頁列出每位隊員的貢獻、等級、出席與時數；其他頁面不放個人資料和聯絡方式。時程與規則每天從系統網站同步；標 ? 的日期是推估。", "This site is public. The Attributions page lists each member's contributions, levels, attendance and hours; the other pages hold no personal details or contact information. The schedule and rules sync daily from the System site; dates marked ? are estimates.")}</p></div>
       <div><h4>${tx("頁面", "Pages")}</h4><nav>${NAV.map(p => `<a href="${p.href}">${esc(L(p))}</a>`).join("")}</nav></div>
       <div><h4>${tx("為什麼這樣做", "Why we work this way")}</h4><nav><a href="${SYS}">${tx("GEMS iGEM 系統網站", "The GEMS iGEM System site")} ↗</a></nav></div>
     </div>`;

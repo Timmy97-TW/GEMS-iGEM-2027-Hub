@@ -20,7 +20,7 @@ It is one half of a pair. The [GEMS iGEM System](https://timmy97-tw.github.io/GE
 | `links.html` Links | Drive folders, workbooks, templates, the System site, the wiki, official iGEM pages, tools |
 | `team.html` Owners | Who to ask about what, and every seat with its weekly work |
 | `guide.html` Guide | For newcomers: what everyone does every week, the gates, the rules, IDs, file names, where each record goes |
-| `attributions.html` Attributions | How credit builds up through the year, help from outside the team, and the contribution board: every task and area, and who worked on each, week by week |
+| `attributions.html` Attributions | How credit builds up through the year, help from outside the team, and the contribution board: every task and area, who worked on each, levels, attendance and hours, week by week |
 
 Press `/` (or `⌘K`) on any page to search all of it at once.
 
@@ -56,15 +56,14 @@ The pages do not assume how many milestones or seats there are, or what their co
 
 ## What stays off this site
 
-This repo is public. Team-level information only.
+This repo is public. Team-level information only. The one exception is the contribution board, below.
 
 - Never: names, contact details, individual progress, who has or has not handed in, grades, reviews, attendance, fees, discipline, research strategy, unpublished project content, a Discord invite, or any link into the instructor-only Ops Drive.
 - A person's own rows live in the Hub Sheet. The hub shows team goals and links to the sheet; it does not copy the rows.
 - Seats are shown, not people. Before a name goes in `data/team.js` or `data/attributions.js`, the PI decides what a public page may show and the person agrees.
 - Drive links are fine here because Drive checks the account. Never set a linked folder or file to "anyone with the link".
-- The contribution board on `attributions.html` is the one place with names, and the repo still holds none. The page fetches them when it opens, from the team's Apps Script web app, which reads the Attribution Log.
-- The public view of the board shows a name only when that person's consent is recorded. Everyone else is "Member". It shows no levels, attendance or hours.
-- Students, parents and instructors who sign in with Google see more: confirmed levels for everyone, and their own (or their child's) entries, attendance and hours. Instructors see everyone's. The server decides what each account gets and leaves the rest out; the page never hides anything itself.
+- The contribution board on `attributions.html` shows every member by name, with their entries, levels (including ○), attendance and hours. There is no login: anyone who opens the page sees all of it. The PI decided this on 22 Nov 2026.
+- The repo still holds no names. The page fetches the data when it opens, from the team's Apps Script web app, which reads the Attribution Log and the Ops Hub. To change or take down anything on the board, edit or delete the row in the sheet; the page follows within five minutes.
 
 "Handed in" ticks and starred links are stored in the reader's own browser and sent nowhere.
 
@@ -73,9 +72,9 @@ This repo is public. Team-level information only.
 - `assets/hub.js`: the shell, the search and every page. `assets/hub.css`: all styles.
 - `data/`: content, Chinese and English side by side.
 - `tools/sync-season.js` and `tools/sync.sh`: the sync. `.github/workflows/sync-season.yml`: its nightly run.
-- `assets/board.js` and `assets/board.css`: the contribution board on `attributions.html`. `assets/board-spec.js`: its levels, value types, roles, areas and seats, generated, no names. `data/board.js`: the web app URL and the Google client ID, filled in after deployment (neither is a secret). While the URL is empty the board says it is not connected yet.
+- `assets/board.js` and `assets/board.css`: the contribution board on `attributions.html`. `assets/board-spec.js`: its levels, value types, roles, areas and seats, generated, no names. `data/board.js`: the web app URL, filled in after deployment. While it is empty the board says it is not connected yet.
 
-No build step and no external requests, with one exception: `attributions.html` loads Google sign-in and calls the team's Apps Script for the board. Open `index.html`, or serve the folder:
+No build step and no external requests, with one exception: `attributions.html` calls the team's Apps Script for the board. Open `index.html`, or serve the folder:
 
 ```bash
 python3 -m http.server 8765

@@ -128,6 +128,7 @@ const LINKS = [
   { id: "jamboree-2026", g: "learn", t: { zh: "2026 前進巴黎", en: "2026 road to Paris" }, d: { zh: "去年最後五週的行事曆、巴黎行程和攤位排班。", en: "Last year’s final five weeks: calendar, Paris plan and booth shifts." }, url: PAGES_GH + "releaf-jamboree/", kind: "site", access: "public" },
 
   // ---- tools
+  { id: "wetlab-kit", g: "tools", t: { zh: "濕實驗工具箱", en: "Wetlab Kit" }, d: { zh: "標註膠片圖、數菌落、畫孔盤、算稀釋與緩衝液、寫實驗報告。在瀏覽器裡跑，圖片不上傳。", en: "Label gels, count colonies, draw plate maps, work out dilutions and buffers, write lab reports. Runs in the browser; images are never uploaded." }, url: "https://timmy97-tw.github.io/GEMS-Wetlab-Kit/", kind: "site", access: "public" },
   { id: "library", g: "tools", t: { zh: "共用文獻庫（Zotero）", en: "Shared library (Zotero)" }, d: { zh: "全隊只有一個庫，一種引用格式。開季時開放。", en: "One library for the whole team and one citation style. Opens with the season." }, url: "", kind: "tool", access: "team" },
   { id: "calendar", g: "tools", t: { zh: "團隊行事曆", en: "Team calendar" }, d: { zh: "11/25 系統完成時上線。在那之前看里程碑頁。", en: "Live when the system is ready on 25 Nov. Until then, use the Milestones page." }, url: "", kind: "tool", access: "team" },
   { id: "github-org", g: "tools", t: { zh: "團隊 GitHub", en: "Team GitHub" }, d: { zh: "程式碼、韌體、wiki 原始碼和交接文。程式不進 Drive。", en: "Code, firmware, wiki source and handover notes. Code stays out of Drive." }, url: "", kind: "repo", access: "team" },

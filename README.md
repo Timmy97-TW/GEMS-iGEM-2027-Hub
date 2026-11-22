@@ -20,7 +20,7 @@ It is one half of a pair. The [GEMS iGEM System](https://timmy97-tw.github.io/GE
 | `links.html` Links | Drive folders, workbooks, templates, the System site, the wiki, official iGEM pages, tools |
 | `team.html` Owners | Who to ask about what, and every seat with its weekly work |
 | `guide.html` Guide | For newcomers: what everyone does every week, the gates, the rules, IDs, file names, where each record goes |
-| `attributions.html` Attributions | How credit builds up through the year, and help from outside the team |
+| `attributions.html` Attributions | How credit builds up through the year, help from outside the team, and the contribution board: every task and area, and who worked on each, week by week |
 
 Press `/` (or `⌘K`) on any page to search all of it at once.
 
@@ -62,6 +62,9 @@ This repo is public. Team-level information only.
 - A person's own rows live in the Hub Sheet. The hub shows team goals and links to the sheet; it does not copy the rows.
 - Seats are shown, not people. Before a name goes in `data/team.js` or `data/attributions.js`, the PI decides what a public page may show and the person agrees.
 - Drive links are fine here because Drive checks the account. Never set a linked folder or file to "anyone with the link".
+- The contribution board on `attributions.html` is the one place with names, and the repo still holds none. The page fetches them when it opens, from the team's Apps Script web app, which reads the Attribution Log.
+- The public view of the board shows a name only when that person's consent is recorded. Everyone else is "Member". It shows no levels, attendance or hours.
+- Students, parents and instructors who sign in with Google see more: confirmed levels for everyone, and their own (or their child's) entries, attendance and hours. Instructors see everyone's. The server decides what each account gets and leaves the rest out; the page never hides anything itself.
 
 "Handed in" ticks and starred links are stored in the reader's own browser and sent nowhere.
 
@@ -70,8 +73,9 @@ This repo is public. Team-level information only.
 - `assets/hub.js`: the shell, the search and every page. `assets/hub.css`: all styles.
 - `data/`: content, Chinese and English side by side.
 - `tools/sync-season.js` and `tools/sync.sh`: the sync. `.github/workflows/sync-season.yml`: its nightly run.
+- `assets/board.js` and `assets/board.css`: the contribution board on `attributions.html`. `assets/board-spec.js`: its levels, value types, roles, areas and seats, generated, no names. `data/board.js`: the web app URL and the Google client ID, filled in after deployment (neither is a secret). While the URL is empty the board says it is not connected yet.
 
-No build step and no external requests. Open `index.html`, or serve the folder:
+No build step and no external requests, with one exception: `attributions.html` loads Google sign-in and calls the team's Apps Script for the board. Open `index.html`, or serve the folder:
 
 ```bash
 python3 -m http.server 8765
@@ -79,4 +83,4 @@ python3 -m http.server 8765
 
 Add `?now=2027-03-24` to any page to see it as it will look on that day.
 
-When `hub.js` or `hub.css` changes, raise the `?v=` number on the script and style tags in the nine HTML files so phones do not mix old and new files.
+When `hub.js` or `hub.css` changes, raise the `?v=` number on the script and style tags in the nine HTML files so phones do not mix old and new files. The board's files are only on `attributions.html`; raise their `?v=` there.

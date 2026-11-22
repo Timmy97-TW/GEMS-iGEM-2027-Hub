@@ -20,7 +20,7 @@ It is one half of a pair. The [GEMS iGEM System](https://timmy97-tw.github.io/GE
 | `links.html` Links | Drive folders, workbooks, templates, the System site, the wiki, official iGEM pages, tools |
 | `team.html` Owners | Who to ask about what, and every seat with its weekly work |
 | `guide.html` Guide | For newcomers: what everyone does every week, the gates, the rules, IDs, file names, where each record goes |
-| `attributions.html` Attributions | How credit builds up through the year, help from outside the team, and the contribution board: every task and area, who worked on each, levels, attendance and hours, week by week |
+| `attributions.html` Attributions | How credit builds up through the year, help from outside the team, and the contribution board: every task and area, who worked on each, levels, attendance and hours, week by week. The board reads `data/board-data.js`, updated once a week |
 
 Press `/` (or `⌘K`) on any page to search all of it at once.
 
@@ -37,6 +37,7 @@ Everything a person edits is one entry in `data/`. Each file starts with a comme
 | Change who to ask | `ASK` in `data/team.js` |
 | Name the person in a seat | `HOLDERS` in `data/team.js` (read the note there first) |
 | Record outside help | `OUTSIDE` in `data/attributions.js` |
+| Update the contribution board | An agent rewrites `data/board-data.js` from the Drive Attribution folder each week; run `node tools/check-board-data.js` before pushing |
 | Change a milestone, seat, rule or folder | **Not here.** Edit `assets/data.js` in GEMS-iGEM-SYSTEM |
 
 If an entry is malformed or a file has a typo that stops it loading, the page still works: it leaves that entry out and says which file at the top of every page.
@@ -62,8 +63,9 @@ This repo is public. Team-level information only. The one exception is the contr
 - A person's own rows live in the Hub Sheet. The hub shows team goals and links to the sheet; it does not copy the rows.
 - Seats are shown, not people. Before a name goes in `data/team.js` or `data/attributions.js`, the PI decides what a public page may show and the person agrees.
 - Drive links are fine here because Drive checks the account. Never set a linked folder or file to "anyone with the link".
-- The contribution board on `attributions.html` shows every member by name, with their entries, levels (including ○), attendance and hours. There is no login: anyone who opens the page sees all of it. The PI decided this on 22 Nov 2026.
-- The repo still holds no names. The page fetches the data when it opens, from the team's Apps Script web app, which reads the Attribution Log and the Ops Hub. To change or take down anything on the board, edit or delete the row in the sheet; the page follows within five minutes.
+- The contribution board on `attributions.html` shows every member by name, with their entries, levels (including ○), attendance and hours. There is no login: anyone who opens the page sees all of it.
+- The board's data is in this repo, in `data/board-data.js`. Every member's name, entries, levels, attendance and hours are in the public repo and stay in its git history after they change. The PI decided this on 22 Nov 2026.
+- To change or take down anything on the board, fix the row in the Drive Attribution folder; the next weekly update carries it here. Older versions stay in git history.
 
 "Handed in" ticks and starred links are stored in the reader's own browser and sent nowhere.
 
@@ -72,9 +74,11 @@ This repo is public. Team-level information only. The one exception is the contr
 - `assets/hub.js`: the shell, the search and every page. `assets/hub.css`: all styles.
 - `data/`: content, Chinese and English side by side.
 - `tools/sync-season.js` and `tools/sync.sh`: the sync. `.github/workflows/sync-season.yml`: its nightly run.
-- `assets/board.js` and `assets/board.css`: the contribution board on `attributions.html`. `assets/board-spec.js`: its levels, value types, roles, areas and seats, generated, no names. `data/board.js`: the web app URL, filled in after deployment. While it is empty the board says it is not connected yet.
+- `assets/board.js` and `assets/board.css`: the contribution board on `attributions.html`. `assets/board-spec.js`: its levels, value types, roles, areas and seats, generated, no names.
+- `data/board-data.js`: the board's data, rewritten each week. `"mock": true` marks test data, and the board then says so next to its title. If the file is missing or broken, the board shows one line saying it could not read the data.
+- `tools/check-board-data.js`: checks `data/board-data.js` against the data contract and the spec. Run it before every push of that file.
 
-No build step and no external requests, with one exception: `attributions.html` calls the team's Apps Script for the board. Open `index.html`, or serve the folder:
+No build step and no external requests; the board reads its data from `data/board-data.js`. Open `index.html`, or serve the folder:
 
 ```bash
 python3 -m http.server 8765

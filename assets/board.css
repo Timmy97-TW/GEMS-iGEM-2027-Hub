@@ -20,11 +20,11 @@ html.bd-lock, html.bd-lock body { overflow: hidden; }
 #board .bd-top > div:first-child { min-width: 0; flex: 1 1 420px; }
 #board .bd-title { font-size: clamp(24px, 3vw, 32px); font-weight: 700; letter-spacing: -.028em; }
 #board .bd-sub { color: var(--ink2); font-size: 15px; margin-top: 8px; }
-#board .bd-fix { font-size: 12px; font-weight: 600; color: #6B4E00; background: #FFF6E0; border-radius: 99px; padding: 3px 10px; }
+#board .bd-th { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; }
+#board .bd-mock { font-size: 12px; font-weight: 500; color: var(--ink3); border: 1px solid var(--line); border-radius: 99px; padding: 2px 9px; white-space: nowrap; }
 #board .bd-notice { margin-top: 16px; padding: 12px 18px; border-radius: 16px; background: var(--tile); font-size: 14.5px; color: var(--ink); }
 #board .bd-notice::before { content: ""; display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--amber); margin-right: 9px; vertical-align: 1px; }
 #board .bd-notice--err::before { background: var(--red); }
-#board .bd-wait { font-size: 15px; color: var(--ink3); padding: 24px 0; }
 
 /* pulse numbers */
 #board .pulse { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 22px; }

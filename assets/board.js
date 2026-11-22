@@ -1,16 +1,15 @@
 // Contribution board on attributions.html. It renders into <section id="board">, outside hub.js's #main.
-// This file holds no names. Every name, level, attendance mark and hour comes from the team's Apps Script at runtime:
-// one GET to the web app when the page opens (attribution-tools/CONTRACT.md). Everyone sees the same board.
-// Config: data/board.js. Levels, areas, roles and seats: assets/board-spec.js.
-// Testing without a server: define window.BOARD_FIXTURE = { ok: true, people: [...], ... } (one response) before this file.
+// Data: data/board-data.js (const BOARD_DATA, the attribution-tools/CONTRACT.md response, rewritten each week). No requests.
+// Levels, areas, roles and seats: assets/board-spec.js.
 (() => {
   "use strict";
   const root = document.getElementById("board");
   if (!root) return;
-  const CFG = typeof BOARD === "object" && BOARD ? BOARD : {};
   const SPEC = typeof BOARD_SPEC === "object" && BOARD_SPEC ? BOARD_SPEC : null;
-  const FIX = window.BOARD_FIXTURE && typeof window.BOARD_FIXTURE === "object" ? window.BOARD_FIXTURE : null;
-  const good = r => r && typeof r === "object" && r.ok !== false && Array.isArray(r.people);
+  const RAW = typeof BOARD_DATA !== "undefined" ? BOARD_DATA : null;
+  const objs = (r, k) => Array.isArray(r[k]) && r[k].every(x => x && typeof x === "object");
+  const good = r => !!r && typeof r === "object" && !Array.isArray(r) && r.ok !== false && Array.isArray(r.weeks) &&
+    ["people", "tasks", "entries"].every(k => objs(r, k)) && ["att", "hours"].every(k => r[k] == null || objs(r, k));
   const QS = new URLSearchParams(location.search);
 
   // ---------- language: the hub's saved choice; ?lang= opens a page in one language without saving it ----------
@@ -31,13 +30,12 @@
 
   const shell = inner => { root.innerHTML = `<div class="wrap">${inner}</div>`; };
   if (!SPEC) { shell(`<p class="bd-off">${tx("貢獻看板的設定檔沒有載入。", "The contribution board's spec file did not load.")}</p>`); return; }
-  const LIVE = !FIX && typeof CFG.api === "string" && /^https:\/\//.test(CFG.api.trim());
-  if (!FIX && !LIVE) {
-    const off = () => shell(`<p class="bd-off">${tx("貢獻看板還沒接上資料。", "The contribution board is not connected yet.")}</p>`);
+  const unread = () => {
+    const off = () => shell(`<p class="bd-off">${tx("看板資料讀不到。", "The board data could not be read.")}</p>`);
     off();
     document.addEventListener("click", e => { const b = e.target.closest("[data-lang]"); if (b && (b.dataset.lang === "zh" || b.dataset.lang === "en")) { S.lang = b.dataset.lang; off(); } });
-    return;
-  }
+  };
+  if (!good(RAW)) { if (window.console) console.warn("[board] BOARD_DATA is missing or malformed"); unread(); return; }
 
   // ---------- spec ----------
   const byK = list => Object.fromEntries(arr(list).map(x => [x.k, x]));
@@ -393,18 +391,6 @@
       </div>`;
   };
 
-  // ================= loading: one GET, no headers, so the browser sends no preflight =================
-  let loading = false, failed = false;
-  function fetchBoard() {
-    loading = true;
-    fetch(CFG.api.trim(), { credentials: "omit", redirect: "follow" })
-      .then(r => { if (!r.ok) throw new Error("HTTP " + r.status); return r.json(); })
-      .then(r => { if (!good(r)) throw new Error("bad response"); load(r); })
-      .catch(e => { failed = true; if (window.console) console.warn("[board]", e && e.message); })
-      .then(() => { loading = false; render(); });
-  }
-  if (FIX) { if (good(FIX)) load(FIX); else failed = true; }
-
   // ================= page =================
   function renderHead() {
     const h = document.getElementById("bd-head"); if (!h) return;
@@ -415,11 +401,12 @@
       sub = tx(`${D.people.length} 位隊員、${D.tasks.length} 個任務、${D.entries.length} 筆紀錄${upd ? `，資料更新於 ${upd}` : ""}。`,
         `${D.people.length} members, ${D.tasks.length} tasks and ${D.entries.length} entries${upd ? `, updated ${upd}` : ""}.`);
     }
-    h.innerHTML = `<div class="bd-top"><div><h2 class="bd-title">${tx("貢獻看板", "Contribution board")}</h2>${sub ? `<p class="bd-sub">${sub}</p>` : ""}</div>${FIX ? `<span class="bd-fix">${tx("測試資料", "Test data")}</span>` : ""}</div>`;
+    const mock = RAW.mock === true ? `<span class="bd-mock">${tx("模擬資料", "Mock data")}</span>` : "";
+    h.innerHTML = `<div class="bd-top"><div><div class="bd-th"><h2 class="bd-title">${tx("貢獻看板", "Contribution board")}</h2>${mock}</div>${sub ? `<p class="bd-sub">${sub}</p>` : ""}</div></div>`;
   }
   function renderBody() {
     const b = document.getElementById("bd-body"); if (!b) return;
-    if (!D) { b.innerHTML = loading ? `<p class="bd-wait">${tx("正在載入貢獻看板…", "Loading the contribution board…")}</p>` : failed ? `<p class="bd-notice bd-notice--err" role="status">${tx("連不上看板的資料，請稍後再重新整理。", "Could not reach the board's data. Reload the page in a while.")}</p>` : ""; return; }
+    if (!D) return;
     const ok = D.entries.filter(counted), last = D.weeks[D.weeks.length - 1];
     const wrote = last ? new Set(D.entries.filter(e => e.wk === last).map(e => e.p)).size : 0;
     const pulse = [[tx("任務", "Tasks"), `${D.tasks.filter(t => stOf(t) === "done").length}<em> / ${D.tasks.length} ${tx("完成", "done")}</em>`],
@@ -449,8 +436,8 @@
   }
   function render() { renderHead(); renderBody(); drawer(); }
 
+  try { load(RAW); } catch (e) { if (window.console) console.error("[board]", e); unread(); return; }
   root.innerHTML = `<div class="wrap"><div id="bd-head"></div><div id="bd-body"></div></div><div class="bd-scrim" data-close></div><aside class="bd-dr" id="bd-dr" aria-hidden="true" aria-label="${tx("詳細", "Details")}"></aside>`;
-  if (LIVE) fetchBoard();
   render();
 
   // The hub's own click handler is registered first, so it has already saved the language and redrawn #main.

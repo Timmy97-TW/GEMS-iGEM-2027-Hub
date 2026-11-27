@@ -136,16 +136,20 @@
   const pins = () => store.json("gems27.pins", {});
   const isPinned = l => { const p = pins(); return l.id in p ? p[l.id] : !!l.pin; };
   const dayEvents = d => [
-    ...NODES.filter(n => n.date === d).map(n => ({ c: lane(n).c, t: L(n.t), k: L(lane(n)), href: `milestones.html#${n.n}` })),
+    ...NODES.filter(n => n.date === d).map(n => ({ c: lane(n).c, t: L(n.t), k: L(lane(n)), href: `roadmap.html#${n.n}` })),
     ...HW.filter(h => h.due === d).map(h => ({ c: "var(--violet)", t: L(h.t), k: tx("作業截止", "Homework due"), href: `homework.html#${h.id}` })),
     ...SES.filter(s => d >= s.from && d <= s.to && s.days.includes(dow(d))).map(s => ({ c: "var(--ink4)", t: L(s.t), k: tx("固定時段（暫定）", "Session (provisional)") }))
   ];
 
   // ---------- shell ----------
+  // The five pages in the nav. The others stay reachable from Today and the footer (MORE).
   const NAV = [
-    ["home", "index.html", "今天", "Today"], ["week", "week.html", "本週", "This week"], ["homework", "homework.html", "作業", "Homework"],
-    ["milestones", "milestones.html", "里程碑", "Milestones"], ["news", "announcements.html", "公告", "News"], ["links", "links.html", "連結", "Links"],
-    ["team", "team.html", "負責人", "Owners"], ["guide", "guide.html", "指南", "Guide"], ["credits", "attributions.html", "貢獻", "Attributions"]
+    ["home", "index.html", "今天", "Today"], ["roadmap", "roadmap.html", "Roadmap", "Roadmap"], ["research", "research.html", "Research", "Research"],
+    ["credits", "attributions.html", "貢獻與成長", "Growth"], ["links", "links.html", "連結", "Links"]
+  ].map(([k, href, zh, en]) => ({ k, href, zh, en }));
+  const MORE = [
+    ["week", "week.html", "本週", "This week"], ["homework", "homework.html", "作業", "Homework"], ["news", "announcements.html", "公告", "News"],
+    ["team", "team.html", "負責人", "Owners"], ["guide", "guide.html", "指南", "Guide"]
   ].map(([k, href, zh, en]) => ({ k, href, zh, en }));
   const SITE = () => tx("GEMS 2027 專案中心", "GEMS 2027 Project Hub");
   function shell() {
@@ -160,12 +164,12 @@
     $("#foot").innerHTML = `<div class="foot__in">
       <div><h4>${SITE()}</h4>
         <p>${tx("GEMS Taiwan 2027 iGEM 隊的入口。", "The front door for the GEMS Taiwan 2027 iGEM team.")}</p>
-        <p>${tx("這是公開網站。貢獻頁列出每位隊員的貢獻、等級、出席與時數；其他頁面不放個人資料和聯絡方式。時程與規則每天從系統網站同步；標 ? 的日期是推估。", "This site is public. The Attributions page lists each member's contributions, levels, attendance and hours; the other pages hold no personal details or contact information. The schedule and rules sync daily from the System site; dates marked ? are estimates.")}</p></div>
-      <div><h4>${tx("頁面", "Pages")}</h4><nav>${NAV.map(p => `<a href="${p.href}">${esc(L(p))}</a>`).join("")}</nav></div>
+        <p>${tx("這是公開網站。貢獻與成長頁列出每位隊員的貢獻、等級、出席與時數，Research 頁列出每份來源是誰讀的；其他頁面不放個人資料和聯絡方式。照片只存在 Drive。時程與規則每天從系統網站同步；標 ? 的日期是推估。", "This site is public. The Growth page lists each member's contributions, levels, attendance and hours, and the Research page shows who read each source; the other pages hold no personal details or contact information. Photos stay in Drive. The schedule and rules sync daily from the System site; dates marked ? are estimates.")}</p></div>
+      <div><h4>${tx("頁面", "Pages")}</h4><nav>${NAV.concat(MORE).map(p => `<a href="${p.href}">${esc(L(p))}</a>`).join("")}</nav></div>
       <div><h4>${tx("為什麼這樣做", "Why we work this way")}</h4><nav><a href="${SYS}">${tx("GEMS iGEM 系統網站", "The GEMS iGEM System site")} ↗</a></nav></div>
     </div>`;
     document.documentElement.lang = lang === "zh" ? "zh-Hant" : "en";
-    const p = NAV.find(x => x.k === PAGE);
+    const p = NAV.concat(MORE).find(x => x.k === PAGE);
     document.title = !p || PAGE === "home" ? SITE() : `${L(p)} · ${SITE()}`;
   }
   const problems = () => PROBLEMS.length ? `<div class="wrap"><p class="warn">${tx("有資料沒有載入：", "Some data did not load: ")}${PROBLEMS.map(p => `<code>data/${esc(p.file)}</code> ${p.n ? tx(`略過 ${p.n} 筆格式不對的`, `${p.n} malformed ${p.n === 1 ? "entry" : "entries"} skipped`) : tx("讀不到", "could not be read")}`).join(tx("；", "; "))}${tx("。格式寫在每個檔案的開頭。", ". Each file starts with the shape of an entry.")}</p></div>` : "";
@@ -178,7 +182,7 @@
     m1.setUTCMonth(m1.getUTCMonth() + 1);
     const R0 = iso(m0), span = diff(R0, iso(m1)), rx = d => (diff(R0, d) / span) * 100, nextN = (nextNode() || {}).n;
     const months = []; for (let x = new Date(m0); x < m1; x.setUTCMonth(x.getUTCMonth() + 1)) months.push(iso(x));
-    const dot = n => `<a class="rb__dot${n.date < TODAY ? " is-past" : ""}${n.n === nextN ? " is-next" : ""}${filter && !filter(n) ? " is-dim" : ""}" href="milestones.html#${esc(n.n)}" style="left:${rx(n.date)}%;--c:${lane(n).c}" title="${esc(`${nodeWhen(n)} · ${L(n.t)}`)}" aria-label="${esc(`${nodeWhen(n)} ${L(n.t)}`)}"></a>`;
+    const dot = n => `<a class="rb__dot${n.date < TODAY ? " is-past" : ""}${n.n === nextN ? " is-next" : ""}${filter && !filter(n) ? " is-dim" : ""}" href="roadmap.html#${esc(n.n)}" style="left:${rx(n.date)}%;--c:${lane(n).c}" title="${esc(`${nodeWhen(n)} · ${L(n.t)}`)}" aria-label="${esc(`${nodeWhen(n)} ${L(n.t)}`)}"></a>`;
     return `<div class="rb"><div class="rb__in" style="min-width:${months.length * 60}px">
       <div class="rb__months">${months.map(m => `<span style="left:${rx(m)}%">${esc(monthShort(m))}</span>`).join("")}</div>
       <div class="rb__bands">${PHASES.map(b => { const w = rx(b.e) - rx(b.s); return `<span class="rb__band${TODAY >= b.s && TODAY <= b.e ? " is-now" : ""}" style="left:${rx(b.s)}%;width:calc(${w}% - 3px)" title="${esc(L(b.n))}">${w > 8 ? esc(L(b.n)) : ""}</span>`; }).join("")}</div>
@@ -222,8 +226,8 @@
     const nextT = tile(tx("下一個里程碑", "Next milestone"), "", next ? `<p class="next__n">${days === 0 ? `<b>${tx("今天", "Today")}</b>` : `<b class="tn">${days}</b><span>${tx("天後", days === 1 ? "day" : "days")}</span>`}</p>
           <h3>${esc(L(next.t))}</h3><p class="next__d">${esc(nodeWhen(next))} · ${esc(L(lane(next)))}</p>
           ${L(next.pass) ? `<p class="next__pass"><span>${tx("通過條件", "To pass")}</span>${esc(L(next.pass))}</p>` : ""}
-          ${up.length > 1 ? `<ul class="list list--date">${up.slice(1, 4).map(n => `<li><time datetime="${n.date}">${esc(md(n.date))}</time><a href="milestones.html#${esc(n.n)}">${esc(L(n.t))}</a></li>`).join("")}</ul>` : ""}
-          ${more("milestones.html", tx("全部里程碑", "All milestones"))}` : empty(tx("這一季的里程碑都走完了。", "Every milestone this season has passed.")), "tile--dark next");
+          ${up.length > 1 ? `<ul class="list list--date">${up.slice(1, 4).map(n => `<li><time datetime="${n.date}">${esc(md(n.date))}</time><a href="roadmap.html#${esc(n.n)}">${esc(L(n.t))}</a></li>`).join("")}</ul>` : ""}
+          ${more("roadmap.html#milestones", tx("全部里程碑", "All milestones"))}` : empty(tx("這一季的里程碑都走完了。", "Every milestone this season has passed.")), "tile--dark next");
     const newsT = tile(tx("公告", "News"), more("announcements.html", tx("全部公告", "All news")), news.length ? `<ul class="list list--date">${news.map(a => `<li><time datetime="${a.d}">${esc(md(a.d))}</time><a href="announcements.html#a-${a.id}">${esc(L(a.t))}</a></li>`).join("")}</ul>` : empty(tx("還沒有公告。", "No news yet.")));
     // Two stacked columns: on a phone they read goals, due, next milestone, news.
     const over = HAS && TODAY > LAST;
@@ -234,7 +238,7 @@
       <p class="note">${tx("在連結頁按星號，可以換成你自己常用的。", "Star a link on the Links page to make this list your own.")}</p>`) : "";
   }, () => {
     const r = ribbon();
-    return r ? sec(`<div class="h2row"><h2 class="h2">${tx("這一年走到哪裡", "Where we are in the year")}</h2>${more("milestones.html", tx("里程碑", "Milestones"))}</div>${r}`) : "";
+    return r ? sec(`<div class="h2row"><h2 class="h2">${tx("這一年走到哪裡", "Where we are in the year")}</h2>${more("roadmap.html#milestones", tx("里程碑", "Milestones"))}</div>${r}`) : "";
   }];
 
   // ----- This week -----
@@ -328,13 +332,10 @@
     () => sec(`<div class="bar"><input class="q" type="search" data-q value="${esc(S.q)}" placeholder="${tx("搜尋：照片、wiki、安全", "Search: photos, wiki, safety")}" autocomplete="off"></div><div id="list">${teamList()}</div>`, "sec--first")];
 
   // ----- Attributions -----
-  P.credits = [() => head([tx("iGEM 交付物", "An iGEM deliverable")], tx("誰做了什麼", "Who did what"),
-      tx("iGEM 要每一隊說清楚：哪些是隊員自己做的，哪些有人幫忙。我們整年都記，最後不用重建。", "iGEM asks every team to say plainly what its members did and where they had help. We keep the record all year, so nothing is rebuilt at the end.")),
-    () => sec(`<h2 class="h2">${tx("貢獻怎麼累積", "How credit builds up")}</h2><ol class="steps">${[
-        [tx("做了就記一筆", "Record it when you do it"), tx("實驗、訪談、圖和數字，做的當下就記進 Hub 試算表。每一列都有做的人。", "Runs, interviews, figures and numbers go into the Hub Sheet as they happen. Every row names who did it.")],
-        [tx("每週回報寫下誰幫了你", "Say who helped you in the weekly check-in"), tx("一句就好。這些話會累積成對方的紀錄。", "One line is enough. These lines build up into that person’s record.")],
-        [tx("凍結前整理成 Attributions", "It becomes the Attributions page before the freeze"), tx("Attributions 和 wiki 一起凍結。送出前，你確認自己那一行對不對。", "Attributions freeze with the wiki. Before it ships, you check that your own line is right.")]
-      ].map(([a, b]) => `<li><h3>${esc(a)}</h3><p>${esc(b)}</p></li>`).join("")}</ol>
+  P.roadmap = []; P.research = [];   // rendered by assets/core.js into #core
+  P.credits = [
+    () => sec(`<h2 class="h2">${tx("交給 iGEM 的 Attributions", "The Attributions page for iGEM")}</h2>
+      <p class="sub">${tx("iGEM 要每一隊寫清楚：哪些是隊員自己做的，哪些有人幫忙。上面的紀錄會在 wiki 凍結前整理成正式的 Attributions 頁，送出前每個人先確認自己那一行。", "iGEM asks every team to say what its members did and where they had help. Before the wiki freezes, the record above becomes the official Attributions page, and each member checks their own line before it ships.")}</p>
       <p class="note">${tx("誰負責哪一塊，看", "For who owns which area, see")} <a href="team.html">${tx("負責人", "Owners")}</a>${tx("。", ".")}</p>`, "sec--first"),
     () => OUT.length ? sec(`<h2 class="h2">${tx("隊外的協助", "Help from outside the team")}</h2><p class="sub">${tx("要寫出一個人的名字，先要有對方同意的紀錄。", "Naming a person here needs their recorded consent first.")}</p>
       <ul class="out">${OUT.map(o => { const items = (Array.isArray(o.items) ? o.items : []).filter(x => x && x.who); return `<li><h3>${esc(L(o.t))}</h3><p>${esc(L(o.d))}</p>${items.length ? `<ul>${items.map(x => `<li><b>${esc(L(x.who))}</b> ${esc(L(x.what))}${x.when ? ` <span class="muted">· ${esc(x.when)}</span>` : ""}</li>`).join("")}</ul>` : ""}</li>`; }).join("")}</ul>
@@ -396,8 +397,8 @@
   const KIND = { page: ["頁面", "Page"], node: ["里程碑", "Milestone"], hw: ["作業", "Homework"], news: ["公告", "News"], link: ["連結", "Link"], seat: ["席位", "Seat"], ask: ["問誰", "Who to ask"], id: ["ID", "ID"], rec: ["紀錄", "Record"], rule: ["規則", "Rule"] };
   function buildIndex() {
     const E = [], add = (k, t, s, href, hay, ext, id) => E.push({ k, t, s, href, ext, id, hay: `${t} ${s} ${hay || ""}`.toLowerCase() });
-    NAV.forEach(p => add("page", L(p), "", p.href, `${p.zh} ${p.en}`));
-    NODES.forEach(n => add("node", L(n.t), `${nodeWhen(n)}${L(n.pass) ? " · " + L(n.pass) : ""}`, `milestones.html#${n.n}`, `${n.n} ${both(n.t)} ${both(n.pass)} ${both(n.owner)} ${both(n.dl)}`));
+    NAV.concat(MORE).forEach(p => add("page", L(p), "", p.href, `${p.zh} ${p.en}`));
+    NODES.forEach(n => add("node", L(n.t), `${nodeWhen(n)}${L(n.pass) ? " · " + L(n.pass) : ""}`, `roadmap.html#${n.n}`, `${n.n} ${both(n.t)} ${both(n.pass)} ${both(n.owner)} ${both(n.dl)}`));
     HW.forEach(h => add("hw", L(h.t), `${tx("截止", "Due")} ${mdw(h.due)}`, `homework.html#${h.id}`, `${both(h.t)} ${both(h.body)}`));
     ANN.forEach(a => add("news", L(a.t), `${md(a.d)}${L(a.body) ? " · " + L(a.body) : ""}`, `announcements.html#a-${a.id}`, `${both(a.t)} ${both(a.body)}`));
     LNK.forEach(l => add("link", L(l.t), linkD(l) || (l.url ? l.url.replace(/^https?:\/\//, "") : ""), l.url || `links.html#${l.id}`, `${both(l.t)} ${both(l.d)} ${l.id} ${l.kind}`, !!l.url, l.id));
@@ -416,7 +417,7 @@
     const ws = pal.q.toLowerCase().split(/\s+/).filter(Boolean);
     let res;
     if (!ws.length) {
-      const up = NODES.filter(n => n.date >= TODAY).slice(0, 3).map(n => `milestones.html#${n.n}`);
+      const up = NODES.filter(n => n.date >= TODAY).slice(0, 3).map(n => `roadmap.html#${n.n}`);
       res = INDEX.filter(e => pal.f === "all" ? e.k === "page" || up.includes(e.href) || (e.k === "link" && isPinned(LINK[e.id])) : e.k === pal.f);
     } else {
       res = INDEX.map(e => { let sc = 0; const t = e.t.toLowerCase();

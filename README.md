@@ -10,17 +10,17 @@ It is one half of a pair. The [GEMS iGEM System](https://timmy97-tw.github.io/GE
 
 ## Pages
 
+Five pages in the nav:
+
 | Page | Answers |
 |---|---|
-| `index.html` Today | What do I do now: this week's goals, what is due next, the next milestone, the latest news, quick links, the year at a glance |
-| `week.html` This week | The goals and the dates of one week; step back and forward through the weeks |
-| `homework.html` Homework | What to do, when it is due, where it is handed in, who reads it |
-| `milestones.html` Milestones | Every milestone with its date, pass condition, owner and who accepts it; as a timeline or a month calendar |
-| `announcements.html` News | Notices for the whole team, newest first |
+| `index.html` Today | What do I do now: this week's goals, what is due next, the next milestone, the latest news, quick links |
+| `roadmap.html` Roadmap | Each pipeline's core tasks, their dates and status (done, in progress, stuck, overdue), and every milestone with its pass condition. No names and no blocker text |
+| `research.html` Research | Open research questions, every source a member read and what it means, who contributed, the AI weekly digest |
+| `attributions.html` Growth | The contribution board: every task, entry, level, attendance and hours; each person's page adds a growth curve, their research cards and their Drive photos |
 | `links.html` Links | Drive folders, workbooks, templates, the System site, the wiki, official iGEM pages, tools |
-| `team.html` Owners | Who to ask about what, and every seat with its weekly work |
-| `guide.html` Guide | For newcomers: what everyone does every week, the gates, the rules, IDs, file names, where each record goes |
-| `attributions.html` Attributions | How credit builds up through the year, help from outside the team, and the contribution board: every task and area, who worked on each, levels, attendance and hours, week by week. The board reads `data/board-data.js`, updated once a week |
+
+`week.html`, `homework.html`, `announcements.html`, `team.html` and `guide.html` still work and are linked from Today and the footer. `milestones.html` forwards to `roadmap.html#milestones`.
 
 Press `/` (or `⌘K`) on any page to search all of it at once.
 
@@ -37,7 +37,8 @@ Everything a person edits is one entry in `data/`. Each file starts with a comme
 | Change who to ask | `ASK` in `data/team.js` |
 | Name the person in a seat | `HOLDERS` in `data/team.js` (read the note there first) |
 | Record outside help | `OUTSIDE` in `data/attributions.js` |
-| Update the contribution board | An agent rewrites `data/board-data.js` from the Drive Attribution folder each week; run `node tools/check-board-data.js` before pushing |
+| Update the board, roadmap and research | Not by hand. Every Sunday an agent rebuilds `data/board-data.js`, `data/roadmap.js` and `data/research.js` from the Core Sheet (steps in `attribution-tools/core/WEEKLY-UPDATE.md`, outside this repo) |
+| Add or move a roadmap task | The Roadmap tab of the Core Sheet; it shows here after the next weekly update |
 | Change a milestone, seat, rule or folder | **Not here.** Edit `assets/data.js` in GEMS-iGEM-SYSTEM |
 
 If an entry is malformed or a file has a typo that stops it loading, the page still works: it leaves that entry out and says which file at the top of every page.
@@ -63,6 +64,8 @@ This repo is public. Team-level information only. The one exception is the contr
 - A person's own rows live in the Hub Sheet. The hub shows team goals and links to the sheet; it does not copy the rows.
 - Seats are shown, not people. Before a name goes in `data/team.js` or `data/attributions.js`, the PI decides what a public page may show and the person agrees.
 - Drive links are fine here because Drive checks the account. Never set a linked folder or file to "anyone with the link".
+- The Research page shows each source under the name of the member who read it (PI decision, 27 Nov 2026). The Roadmap page shows no names and no blocker text; those are only on the instructors' private meeting dashboard.
+- Photos are never in this repo. `data/board-data.js` holds Drive file IDs only, and Drive decides who can see each photo. Never share a photo folder by link.
 - The contribution board on `attributions.html` shows every member by name, with their entries, levels (including ○), attendance and hours. There is no login: anyone who opens the page sees all of it.
 - The board's data is in this repo, in `data/board-data.js`. Every member's name, entries, levels, attendance and hours are in the public repo and stay in its git history after they change. The PI decided this on 22 Nov 2026.
 - To change or take down anything on the board, fix the row in the Drive Attribution folder; the next weekly update carries it here. Older versions stay in git history.
@@ -75,10 +78,12 @@ This repo is public. Team-level information only. The one exception is the contr
 - `data/`: content, Chinese and English side by side.
 - `tools/sync-season.js` and `tools/sync.sh`: the sync. `.github/workflows/sync-season.yml`: its nightly run.
 - `assets/board.js` and `assets/board.css`: the contribution board on `attributions.html`. `assets/board-spec.js`: its levels, value types, roles, areas and seats, generated, no names.
+- `assets/core.js` and `assets/core.css`: the Roadmap and Research pages.
+- `data/roadmap.js` and `data/research.js`: their data, rewritten each week by `attribution-tools/core/build-core.js`. `"mock": true` marks demo data with invented names.
 - `data/board-data.js`: the board's data, rewritten each week. `"mock": true` marks test data, and the board then says so next to its title. If the file is missing or broken, the board shows one line saying it could not read the data.
 - `tools/check-board-data.js`: checks `data/board-data.js` against the data contract and the spec. Run it before every push of that file.
 
-No build step and no external requests; the board reads its data from `data/board-data.js`. Open `index.html`, or serve the folder:
+No build step. The only external requests are Drive photo thumbnails on a person’s page, and only when the data is real (not mock). Open `index.html`, or serve the folder:
 
 ```bash
 python3 -m http.server 8765
@@ -86,4 +91,4 @@ python3 -m http.server 8765
 
 Add `?now=2027-03-24` to any page to see it as it will look on that day.
 
-When `hub.js` or `hub.css` changes, raise the `?v=` number on the script and style tags in the nine HTML files so phones do not mix old and new files. The board's files are only on `attributions.html`; raise their `?v=` there.
+When `hub.js` or `hub.css` changes, raise the `?v=` number on the script and style tags in every HTML file so phones do not mix old and new files. The board's files are only on `attributions.html`; raise their `?v=` there.

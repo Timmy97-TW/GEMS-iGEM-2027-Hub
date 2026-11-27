@@ -17,7 +17,7 @@ const BOARD_SPEC = {
   {
    "k": "o",
    "g": "◆",
-   "w": 3,
+   "w": 4,
    "zh": "承擔責任・解決問題",
    "en": "Owned it, solved it",
    "def_zh": "一件事從頭扛到尾，或卡住時自己找出原因和解法。",

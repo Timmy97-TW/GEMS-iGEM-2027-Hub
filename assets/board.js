@@ -14,8 +14,10 @@
 
   // ---------- language: the hub's saved choice; ?lang= opens a page in one language without saving it ----------
   const readLang = () => { const q = QS.get("lang"); if (q === "en" || q === "zh") return q; try { return localStorage.getItem("lang") === "en" ? "en" : "zh"; } catch (e) { return "zh"; } };
-  const TABS = ["map", "areas", "value", "people", "roles", "week"];
-  const S = { lang: readLang(), tab: TABS.includes(QS.get("tab")) ? QS.get("tab") : "map", vt: "all", grp: "all", range: "8", wk: -1, drawer: null };
+  const TABS = ["home", "map", "areas", "value", "people", "roles", "week"];
+  const S = { lang: readLang(), tab: TABS.includes(QS.get("tab")) ? QS.get("tab") : "home", vt: "all", grp: "all", range: "8", wk: -1, drawer: null, find: "" };
+  // ?who=P012, ?task=T0007 or ?area=promo opens that page directly, so a parent can save a link to their child.
+  { const k = ["who", "task", "area"].find(x => QS.get(x)); if (k) S.drawer = { [k]: QS.get(k) }; }
   const tx = (zh, en) => (S.lang === "zh" ? zh : en);
   const L = o => (o ? o[S.lang] || o.zh || o.en || "" : "");
   const LK = (o, k) => (o && (o[k + "_" + S.lang] || o[k + "_zh"])) || "";
@@ -28,7 +30,7 @@
   const pct = v => Math.round(v * 100) + "%";
   const med = a => { const v = a.slice().sort((x, y) => x - y); return v.length ? v[Math.floor(v.length / 2)] : 0; };
 
-  const shell = inner => { root.innerHTML = `<div class="wrap">${inner}</div>`; };
+  const shell = inner => { root.innerHTML = `<div class="wrap"><div class="bd-hero"><h1 class="h1">${tx("誰做了什麼", "Who did what")}</h1></div>${inner}</div>`; };
   if (!SPEC) { shell(`<p class="bd-off">${tx("貢獻看板的設定檔沒有載入。", "The contribution board's spec file did not load.")}</p>`); return; }
   const unread = () => {
     const off = () => shell(`<p class="bd-off">${tx("看板資料讀不到。", "The board data could not be read.")}</p>`);
@@ -119,6 +121,26 @@
   const span = es => { const w = es.map(e => e.wk).sort(); return w.length ? (w[0] === w[w.length - 1] ? md(w[0]) : `${md(w[0])}–${md(w[w.length - 1])}`) : ""; };
   const areaList = ks => ks.map(k => esc(areaName(k))).join(tx("、", ", "));
   const nPeople = n => `${n} ${tx("人", n === 1 ? "person" : "people")}`;
+  const ptsU = n => `${n} ${tx("分", n === 1 ? "pt" : "pts")}`;
+  const here = s => s === "P" || s === "L";
+  const gIdx = p => { const i = GROUPS.findIndex(g => g.k === p.g); return i < 0 ? 99 : i; };
+  const byName = (a, b) => gIdx(a) - gIdx(b) || (a.n ? 0 : 1) - (b.n ? 0 : 1) || String(a.n || a.id).localeCompare(String(b.n || b.id));
+  // One person on one Saturday: the highest entry, or why there is none (present but not written, excused, absent, no record).
+  const wkMark = (pid, w) => memo(`m:${pid}|${w}`, () => {
+    const es = (D.byP[pid] || []).filter(e => e.wk === w);
+    if (es.length) { const top = es.slice().sort((x, y) => rk(x) - rk(y))[0]; return { k: lvOf(top) || "n", pend: es.some(e => lvOf(e) && e.pend), n: es.length }; }
+    const a = D.attAt[pid + "|" + w];
+    return { k: a === "E" || a === "A" ? a : here(a) ? "miss" : "none", n: 0 };
+  });
+  const MARK = { E: ["假", "E"], A: ["缺", "A"] };
+  const markGlyph = m => (LV[m.k] ? LV[m.k].g : m.k === "n" ? "·" : MARK[m.k] ? tx(...MARK[m.k]) : "");
+  const markName = m => (LV[m.k] ? L(LV[m.k]) + (m.pend ? tx("（還沒核定）", " (not confirmed yet)") : "") : { n: tx("有紀錄", "Recorded"), miss: tx("出席，沒寫", "Present, not written"), E: tx("請假", "Excused"), A: tx("缺席", "Absent"), none: tx("沒有點名紀錄", "No roll call") }[m.k] || "");
+  // Rank by confirmed points, season and last 8 Saturdays. Ties share a rank.
+  const ranks = () => memo("ranks", () => {
+    const w8 = W8(), mk = f => { const xs = D.people.map(p => [p.id, ptsOf((D.byP[p.id] || []).filter(f))]), v = xs.map(x => x[1]).sort((a, b) => b - a);
+      return { by: Object.fromEntries(xs.map(([id, n]) => [id, { n, r: v.indexOf(n) + 1 }])), sorted: v }; };
+    return { all: mk(() => true), w8: mk(e => w8.has(e.wk)) };
+  });
 
   const stats = pid => memo("s:" + pid, () => {
     const es = D.byP[pid] || [], ok = es.filter(counted), w8 = W8();
@@ -160,7 +182,95 @@
       .filter(x => x.miss.length && x.have.length).sort((x, y) => y.have.length - x.have.length || x.miss.length - y.miss.length)[0]; };
 
   // ================= views =================
-  const TABN = [["map", "專案", "Project"], ["areas", "工作區", "Areas"], ["value", "創造價值", "Value"], ["people", "隊員", "People"], ["roles", "角色", "Roles"], ["week", "每週", "Weekly"]];
+  const TABN = [["home", "總覽", "Overview"], ["map", "任務", "Tasks"], ["areas", "工作區", "Areas"], ["value", "創造價值", "Value"], ["people", "隊員", "People"], ["roles", "角色", "Roles"], ["week", "每週", "Weekly"]];
+
+  // overview: one screen for parents, students and teachers
+  const vHome = () => {
+    const last = D.weeks[D.weeks.length - 1];
+    if (!last) return `<p class="bnote">${tx("還沒有任何一週的紀錄。", "No weeks recorded yet.")}</p>`;
+    const li = D.weeks.length - 1, N = D.people.length, mk = p => wkMark(p.id, last);
+    const attHere = D.att.filter(a => a.wk === last && here(a.s)).length, attAll = D.att.filter(a => a.wk === last).length;
+    const lastEs = D.entries.filter(e => e.wk === last), wrote = new Set(lastEs.map(e => e.p)).size;
+    const nums = [
+      ...(attAll ? [[tx("出席", "Present"), `${attHere}<em> / ${attAll}</em>`]] : []),
+      [tx("寫了紀錄", "Wrote it down"), `${wrote}<em> / ${N}</em>`],
+      [tx("★ 和 ◆", "★ and ◆"), `${lastEs.filter(e => e.lv === "v" && !e.redo).length}<em> ★ </em>${lastEs.filter(e => e.lv === "o" && !e.redo).length}<em> ◆</em>`],
+      [tx("等組長核定", "Waiting for the lead"), `${lastEs.filter(e => e.pend && !e.redo).length}<em> ${tx("筆", "entries")}</em>`]];
+    const groups = [...GROUPS, OTHER].map(g => ({ g, ps: D.people.filter(p => (g.k === "_" ? !G[p.g] || p.g === "all" : p.g === g.k)).sort(byName) })).filter(x => x.ps.length);
+    const chip = p => { const m = mk(p);
+      return `<button class="rc" data-who="${esc(p.id)}" title="${esc(nameOf(p))} · ${esc(markName(m))}"><i class="c c--${m.k}${m.pend ? " c--pend" : ""}">${markGlyph(m)}</i><span>${esc(nameOf(p))}</span>${p.role === "pl" || p.role === "lead" ? `<small>${esc(L(RO[p.role]))}</small>` : ""}</button>`; };
+    const marksUsed = new Set(D.people.map(p => mk(p).k));
+    const legend = ["v", "o", "q", "b", "miss", "E", "A"].filter(k => marksUsed.has(k)).map(k => `<span><i class="c c--${k}">${markGlyph({ k })}</i>${esc(markName({ k }))}</span>`).join("")
+      + (D.people.some(p => mk(p).pend) ? `<span><i class="c c--q c--pend">${LV.q ? LV.q.g : ""}</i>${tx("淡色：還沒核定", "Faded: not confirmed yet")}</span>` : "");
+
+    const aud = [
+      [tx("家長", "Parents"), tx("在名單裡點孩子的名字，或用上面的搜尋。個人頁有出席、時數和每週做了什麼，也可以複製連結存起來。", "Tap your child's name in the list, or search above. Their page shows attendance, hours and each week's work, and has a link you can save."), ""],
+      [tx("學生", "Students"), tx("「隊員」看你和全隊的距離；「創造價值」看什麼算 ★。", "People shows where you stand against the team. Value shows what counts as ★."), `<button data-tab="people">${tx("隊員", "People")}</button><button data-tab="value">${tx("創造價值", "Value")}</button>`],
+      [tx("老師與組長", "Teachers and leads"), tx("「要跟進」列出沒寫、等核定和常不在的人；「每週」看每個週六的全貌。", "Follow up lists who has not written, what waits for a lead and who is often away. Weekly shows every Saturday."), `<a href="#bd-follow">${tx("要跟進", "Follow up")}</a><button data-tab="week">${tx("每週", "Weekly")}</button>`]];
+
+    return `<div class="aud">${aud.map(([h, p, go]) => `<div><h4>${h}</h4><p>${p}</p>${go ? `<span class="aud__go">${go}</span>` : ""}</div>`).join("")}</div>
+      <div class="key">${"voqb".split("").filter(k => LV[k]).map(k => `<div class="key__i key--${k}"><i class="lv lv--${k}">${LV[k].g}</i><div><b>${esc(L(LV[k]))}</b><p>${esc(LK(LV[k], "def"))}</p></div><strong>${W[k]}<small>${tx("分", W[k] === 1 ? "pt" : "pts")}</small></strong></div>`).join("")}</div>
+      <p class="keyn">${tx("只算已核定的紀錄。◆ 和 ● 由組長在週日核定；★ 由組長提名、老師確認；○ 只有老師記。", "Only confirmed entries count. Leads confirm ◆ and ● on Sunday; a ★ is nominated by the lead and confirmed by an instructor; only instructors record ○.")}</p>
+
+      <div class="panel lastsat">
+        <div class="ptitle"><span>${tx(`最近一個週六 · ${md(last)}`, `Last Saturday · ${md(last)}`)}</span><button class="lnk" data-gowk="${li}">${tx("這一週的紀錄 →", "That week's entries →")}</button></div>
+        <div class="nums">${nums.map(([l, v]) => `<div><small>${l}</small><strong>${v}</strong></div>`).join("")}</div>
+        <div class="roster">${groups.map(({ g, ps }) => `<div class="rg"><h5 style="--gc:${g.c}"><i></i>${esc(L(g))}<small>${ps.length}</small></h5><div class="rg__l">${ps.map(chip).join("")}</div></div>`).join("")}</div>
+        <div class="gleg">${legend}</div>
+      </div>
+
+      <div class="duo">
+        <div class="panel"><div class="ptitle"><span>${tx("整季，每個週六", "The season, Saturday by Saturday")}</span><span>${tx("點一欄看那一週", "Tap a column for that week")}</span></div>${seasonChart()}</div>
+        ${follow(last)}
+      </div>
+      ${faq()}`;
+  };
+  const seasonChart = () => {
+    const ws = D.weeks, N = Math.max(1, D.people.length), cw = 12, gap = 3, H = 150, t = 6, b = 22, Wd = ws.length * (cw + gap);
+    const ORD = ["v", "o", "q", "b", "n", "miss", "E", "A"];
+    const cols = ws.map((w, i) => { const c = {}; D.people.forEach(p => { const k = wkMark(p.id, w).k; c[k] = (c[k] || 0) + 1; });
+      let y = t + H; const x = i * (cw + gap);
+      const rects = ORD.filter(k => c[k]).map(k => { const h = (c[k] / N) * H; y -= h; return `<rect class="f-${k}" x="${x}" y="${y.toFixed(1)}" width="${cw}" height="${Math.max(0, h - 0.6).toFixed(1)}" rx="2"/>`; }).join("");
+      const tip = `${md(w)} · ${ORD.filter(k => c[k]).map(k => `${markName({ k })} ${c[k]}`).join("、")}`;
+      return `<g class="col" data-gowk="${i}"><title>${esc(tip)}</title><rect class="hit" x="${x - 1}" y="${t}" width="${cw + gap}" height="${H}"/>${rects}</g>`; }).join("");
+    let pm = ""; const labels = ws.map((w, i) => { const m = w.slice(0, 7); if (m === pm) return ""; pm = m; return `<text x="${i * (cw + gap)}" y="${t + H + 16}" font-size="10.5" fill="#8E8E93">${esc(mon(m))}</text>`; }).join("");
+    return `<div class="bd-sc"><svg viewBox="0 0 ${Wd} ${t + H + b}" role="img" aria-label="${tx("每個週六全隊的等級分布", "The team's levels on each Saturday")}">${cols}${labels}</svg></div>
+      <div class="gleg">${ORD.filter(k => k !== "n").map(k => `<span><i class="c c--${k}">${markGlyph({ k })}</i>${esc(markName({ k }))}</span>`).join("")}</div>`;
+  };
+  // What a teacher or lead should act on. Every list is clickable; an empty list is left out.
+  const follow = last => {
+    const w4 = new Set(D.weeks.slice(-4)), uniq = es => [...new Set(es.map(e => e.p))].map(per);
+    const missing = D.people.filter(p => wkMark(p.id, last).k === "miss").sort(byName);
+    const old = D.entries.filter(e => e.pend && !e.redo && lvOf(e) && e.wk < last), byG = {};
+    old.forEach(e => { const g = per(e.p).g || "_"; byG[g] = (byG[g] || 0) + 1; });
+    const leadOf = g => D.people.find(p => p.g === g && p.role === "lead");
+    const away = D.people.filter(p => D.att.filter(a => a.p === p.id && w4.has(a.wk) && (a.s === "A" || a.s === "E")).length >= 2).sort(byName);
+    const redo = uniq(D.entries.filter(e => e.redo && w4.has(e.wk))), below = uniq(D.entries.filter(e => e.lv === "b" && !e.redo && w4.has(e.wk)));
+    const stuck = D.tasks.filter(t => stOf(t) === "stuck");
+    const pills = ps => ps.map(p => `<button class="pill" data-who="${esc(p.id)}">${esc(nameOf(p))}</button>`).join("");
+    const rows = [
+      [tx(`${md(last)} 出席但沒寫`, `Present on ${md(last)}, not written`), missing.length, pills(missing)],
+      [tx("等組長核定超過一週", "Waiting for a lead for over a week"), old.length, Object.keys(byG).sort((a, b) => byG[b] - byG[a]).map(g => { const l = leadOf(g), gn = G[g] ? L(G[g]) : L(OTHER);
+        return l ? `<button class="pill" data-who="${esc(l.id)}">${esc(gn)} · ${byG[g]} ${tx("筆", "")}<small>${tx("組長", "lead")} ${esc(nameOf(l))}</small></button>` : `<span class="pill">${esc(gn)} · ${byG[g]}</span>`; }).join("")],
+      [tx("近 4 個週六有 2 次沒到", "Away 2 of the last 4 Saturdays"), away.length, pills(away)],
+      [tx("近 4 週被退回重做", "Sent back in the last 4 weeks"), redo.length, pills(redo)],
+      [tx("近 4 週有 ○", "○ in the last 4 weeks"), below.length, pills(below)],
+      [tx("卡住的任務", "Stuck tasks"), stuck.length, stuck.map(t => `<button class="pill" data-task="${esc(t.id)}">${esc(t.t)}</button>`).join("")]].filter(r => r[1]);
+    return `<div class="panel" id="bd-follow"><div class="ptitle"><span>${tx("要跟進", "Follow up")}</span><span>${tx("給老師和組長", "For teachers and leads")}</span></div>
+      ${rows.length ? `<div class="fu">${rows.map(([h, n, body]) => `<div><b>${h}<em>${n}</em></b><div class="fu__l">${body}</div></div>`).join("")}</div>` : `<p class="bnote">${tx("目前沒有要跟進的事。", "Nothing to follow up right now.")}</p>`}</div>`;
+  };
+  const faq = () => {
+    const qs = [
+      [tx("等級誰決定？", "Who decides the level?"), tx("學生先自評。組長在週日核定 ◆ 和 ●；★ 由組長提名、老師確認；○ 只有老師記，寫在 Ops Hub。", "Students rate themselves first. The lead confirms ◆ and ● on Sunday; a ★ is nominated by the lead and confirmed by an instructor; only instructors record ○, in the Ops Hub.")],
+      [tx("分數怎麼算？", "How are points counted?"), tx(`★ ${W.v} 分、◆ ${W.o} 分、● ${W.q} 分、○ ${W.b} 分，每個工作區都一樣。等核定和退回重做的紀錄不算分。`, `★ ${W.v}, ◆ ${W.o}, ● ${W.q} and ○ ${W.b} points, in every area. Entries waiting for a lead or sent back score nothing.`)],
+      [W.v === W.o ? tx("★ 和 ◆ 分數一樣，差在哪？", "★ and ◆ score the same. What is the difference?") : tx("★ 和 ◆ 差在哪？", "What is the difference between ★ and ◆?"), tx("◆ 是把一件事扛到底、把問題解掉。★ 是讓團隊多了一樣原本沒有、別人會接著用的東西，例如新流程、工具、資源或技術，或排除一個做不到的方案。★ 會放在「創造價值」牆上。", "◆ is carrying a piece of work to the end or solving a problem. ★ gives the team something it did not have and others build on: a pipeline, a tool, a resource, a technique, or a dead end ruled out. Every ★ goes on the Value wall.")],
+      [tx("出席率怎麼算？", "How is attendance worked out?"), tx("出席和遲到算有到，請假和缺席算沒到。分母是有點名紀錄的週六。", "Present and late count as there; excused and absent do not. It is out of the Saturdays with a roll call.")],
+      [tx("時數從哪裡來？", "Where do the hours come from?"), tx("老師每個月在 Ops Hub 記的實體和線上時數。", "Instructors log on-site and online hours each month in the Ops Hub.")],
+      [tx("多久更新一次？", "How often does this update?"), tx("每週日晚上一次。週六寫的紀錄，要等組長核定才算分。", "Once a week, on Sunday night. Saturday's entries score once a lead confirms them.")],
+      [tx("對紀錄有疑問，找誰？", "A question about an entry?"), tx("先找組長，再找老師。", "Ask the group lead first, then an instructor.")],
+      [tx("誰看得到這一頁？", "Who can see this page?"), tx("任何人。這是公開網站，舊的資料也會留在 GitHub 的歷史紀錄裡。", "Anyone. This is a public site, and older data stays in its GitHub history.")]];
+    return `<div class="faq"><h4>${tx("常見問題", "Questions")}</h4>${qs.map(([q, a]) => `<details><summary>${q}</summary><p>${a}</p></details>`).join("")}</div>`;
+  };
 
   // project: every task, who owns it and who worked on it
   const vMap = () => {
@@ -208,7 +318,7 @@
   const vValue = () => {
     const ok = D.entries.filter(counted), stars = ok.filter(e => e.lv === "v");
     const list = stars.filter(e => S.vt === "all" || e.vt === S.vt).sort((a, b) => (a.wk < b.wk ? 1 : a.wk > b.wk ? -1 : 0));
-    return `<div class="vh"><div><h3>${tx("三種貢獻的分數", "How contributions are scored")}</h3><p>${tx("每個工作區都一樣。只算已核定的紀錄。", "The same in every area. Only confirmed entries count.")}</p></div></div>
+    return `<div class="vh"><div><h3>${tx("創造價值", "Creating value")}</h3><p>${W.v === W.o ? tx("★ 和 ◆ 分數一樣。★ 多了一個條件：團隊因此多了一樣原本沒有、別人會接著用的東西。", "★ and ◆ score the same. A ★ asks for one more thing: the team now has something it did not have, and others build on it.") : tx("每個工作區都一樣。只算已核定的紀錄。", "The same in every area. Only confirmed entries count.")}</p></div></div>
       <div class="worth">${["v", "o", "q"].filter(k => LV[k]).map(k => `<div class="w-${k}"><div class="worth__h"><b><i class="lv lv--${k}">${LV[k].g}</i>${esc(L(LV[k]))}</b><strong>×${W[k]}<small>${tx("分", "pts")}</small></strong></div>
         <div class="blocks">${Array.from({ length: WMAX }, (_, i) => `<i style="background:${i < W[k] ? `var(--${k})` : "rgba(0,0,0,.05)"}"></i>`).join("")}</div>
         <p>${esc(LK(LV[k], "def"))} <b>${ok.filter(e => e.lv === k).length}</b> ${tx("筆", "so far")}</p></div>`).join("")}</div>
@@ -319,33 +429,89 @@
   // ================= drawers =================
   const close = () => `<button class="bd-x" data-close aria-label="${tx("關閉", "Close")}"><svg viewBox="0 0 24 24" aria-hidden="true">${ICON.x}</svg></button>`;
   const meter = (lab, val, max, txt, color) => `<div class="meter"><span>${lab}</span><span class="mbar"><i style="width:${Math.min(1, max ? val / max : 0) * 100}%;background:${color}"></i></span><span>${txt}</span></div>`;
+  // ---------- growth: confirmed points added up week by week, against the team median ----------
+  const growth = pid => memo("g:" + pid, () => {
+    const cum = id => { const by = {}; let t = 0; (D.byP[id] || []).filter(counted).forEach(e => { by[e.wk] = (by[e.wk] || 0) + W[e.lv]; }); return D.weeks.map(w => (t += by[w] || 0)); };
+    const all = D.people.map(p => cum(p.id));
+    return { me: cum(pid), mid: D.weeks.map((_, i) => med(all.map(a => a[i]))), top: D.weeks.map((_, i) => Math.max(0, ...all.map(a => a[i]))) };
+  });
+  const growthSVG = (pid, name) => {
+    const g = growth(pid), n = D.weeks.length; if (n < 2) return `<p class="bnote">${tx("至少要兩週的紀錄才畫得出來。", "Needs at least two weeks of entries.")}</p>`;
+    const Wd = 560, Hd = 170, l = 6, r = 120, t = 12, b = 22, ymax = Math.max(4, ...g.top);
+    const X = i => l + (i / (n - 1)) * (Wd - l - r), Y = v => t + (1 - v / ymax) * (Hd - t - b);
+    const path = a => a.map((v, i) => `${i ? "L" : "M"}${X(i).toFixed(1)},${Y(v).toFixed(1)}`).join("");
+    const lastMe = g.me[n - 1], lastMid = g.mid[n - 1];
+    let yMe = Y(lastMe), yMid = Y(lastMid); if (Math.abs(yMe - yMid) < 15) { if (yMe <= yMid) yMid = yMe + 15; else yMe = yMid + 15; }
+    const ticks = [0, Math.round(ymax / 2), ymax];
+    return `<svg class="bd-grow" viewBox="0 0 ${Wd} ${Hd}" role="img" aria-label="${esc(tx(`${name} 的累積分數 ${lastMe}，全隊中間值 ${lastMid}`, `${name}: ${lastMe} points so far; team median ${lastMid}`))}">
+      ${ticks.map(v => `<line x1="${l}" x2="${Wd - r}" y1="${Y(v)}" y2="${Y(v)}" class="gl"/><text x="${Wd - r + 4}" y="${Y(v) + 4}" class="ax">${v}</text>`).join("")}
+      <text x="${l}" y="${Hd - 4}" class="ax">${md(D.weeks[0])}</text><text x="${Wd - r}" y="${Hd - 4}" class="ax" text-anchor="end">${md(D.weeks[n - 1])}</text>
+      <path d="${path(g.mid)}" class="ln ln--mid"/><path d="${path(g.me)}" class="ln ln--me"/>
+      <circle cx="${X(n - 1)}" cy="${Y(lastMe)}" r="4" class="pt--me"/>
+      <text x="${Wd - r + 34}" y="${yMe + 4}" class="lb lb--me">${esc(tx("本人", "Them"))} ${lastMe}</text>
+      <text x="${Wd - r + 34}" y="${yMid + 4}" class="lb">${esc(tx("中間值", "Median"))} ${lastMid}</text>
+      ${D.weeks.map((w, i) => `<rect x="${(X(i) - (Wd - l - r) / (n - 1) / 2).toFixed(1)}" y="${t}" width="${((Wd - l - r) / (n - 1)).toFixed(1)}" height="${Hd - t - b}" class="hit"><title>${md(w)} · ${esc(tx("本人", "Them"))} ${g.me[i]} · ${esc(tx("中間值", "median"))} ${g.mid[i]} · ${esc(tx("最高", "top"))} ${g.top[i]}</title></rect>`).join("")}
+    </svg>`;
+  };
+  // ---------- photos: Drive file IDs only. Drive decides who may see them; on the demo data nothing is fetched. ----------
+  const goodId = id => typeof id === "string" && /^[\w-]{20,}$/.test(id);
+  const photo = (id, label) => {
+    const href = `https://drive.google.com/file/d/${esc(id)}/view`;
+    const ph = `<span class="bd-ph0">${ico("link")}${tx("Drive 照片", "Drive photo")}</span>`;
+    return `<a class="bd-ph" href="${href}" target="_blank" rel="noopener noreferrer" title="${esc(label)}">${RAW.mock ? ph
+      : `<img loading="lazy" alt="${esc(label)}" referrerpolicy="no-referrer" src="https://drive.google.com/thumbnail?id=${esc(id)}&amp;sz=w400" onerror="this.outerHTML='${ph.replace(/"/g, "&quot;")}'">`}</a>`;
+  };
+  const photosOf = es => es.filter(e => Array.isArray(e.ph)).flatMap(e => e.ph.filter(goodId).map(id => ({ id, e })));
+  const researchOf = pid => { const R = typeof RESEARCH === "object" && RESEARCH && Array.isArray(RESEARCH.cards) ? RESEARCH : null; return R ? R.cards.filter(c => c && c.p === pid) : null; };
   const personDrawer = pid => {
-    const p = per(pid), s = stats(pid), es = s.es, hasAtt = s.a.length > 0, hasHrs = s.hs.length > 0;
+    const p = per(pid), s = stats(pid), es = s.es, hasAtt = s.a.length > 0, hasHrs = s.hs.length > 0, N = D.people.length;
     const ref = teamRef(), seats = bridgeSeats(), seatB = BR.find(b => seats[b.k] && seats[b.k].p.id === pid);
     const seatNow = seatB && seatGap(pid, seatB), grow = growSeat(pid, seatB && seatB.k);
+    const R = ranks(), ra = R.all.by[pid] || { n: 0, r: N }, r8 = R.w8.by[pid] || { n: 0, r: N }, top5 = R.w8.sorted[Math.min(4, R.w8.sorted.length - 1)] || 0;
+    const nHere = s.a.filter(a => here(a.s)).length, wroteW = new Set(es.map(e => e.wk)), nWrote = s.a.filter(a => here(a.s) && wroteW.has(a.wk)).length;
+    const pend = es.filter(e => e.pend && !e.redo).length, redo = es.filter(e => e.redo).length;
     const att = {}; s.a.forEach(a => { att[a.wk] = a.s; });
     const tl = D.weeks.map(w => { const xs = es.filter(e => e.wk === w).sort((x, y) => rk(x) - rk(y)), a = att[w];
       if (!xs.length) return a ? `<li><small>${md(w)}</small><i></i><p class="abs">${a === "E" ? tx("請假", "Excused") : a === "A" ? tx("缺席", "Absent") : tx("出席，沒寫", "Present, not written")}</p></li>` : "";
       return xs.map(e => { const t = D.T[e.task];
-        return `<li><small>${md(w)}</small>${lvTag(e)}<p><b>${t ? `${esc(t.id)} · ${esc(t.t)}` : e.task ? esc(e.task) : esc(areaName(e.area))}</b>${esc(e.what)}<br>${vtChip(e)}${flags(e)}${evLink(e)}</p></li>`; }).join(""); }).reverse().join("");
+        return `<li><small>${md(w)}</small>${lvTag(e)}<p><b>${t ? `${esc(t.id)} · ${esc(t.t)}` : e.task ? esc(e.task) : esc(areaName(e.area))}</b>${esc(e.what)}<br>${vtChip(e)}${flags(e)}${evLink(e)}</p>${photosOf([e]).length ? `<div class="bd-phs bd-phs--s">${photosOf([e]).map(x => photo(x.id, md(w))).join("")}</div>` : ""}</li>`; }).join(""); }).reverse().join("");
     const hmax = Math.max(1, ...s.hs.map(h => (+h.on || 0) + (+h.off || 0)));
+    const sum = [
+      [tx("整季分數", "Season points"), ra.n, tx(`第 ${ra.r} / ${N} 名`, `#${ra.r} of ${N}`)],
+      ...(hasAtt ? [[tx("出席", "Attendance"), pct(s.att), tx(`${nHere} / ${s.a.length} 個週六`, `${nHere} of ${s.a.length} Saturdays`), attLow(s.att)],
+        [tx("有寫紀錄", "Wrote it down"), nWrote, tx(`到場 ${nHere} 次中`, `of ${nHere} times there`)]] : [[tx("紀錄", "Entries"), es.length, ""]]),
+      ...(hasHrs ? [[tx("時數", "Hours"), `${s.on + s.off}<small>h</small>`, tx(`實體 ${s.on}・線上 ${s.off}`, `${s.on} on site, ${s.off} online`)]] : [])];
+    const gap8 = r8.r <= 5 ? tx("在前 5 名。", "In the top 5.") : tx(`和第 5 名差 ${top5 - r8.n} 分。`, `${ptsU(top5 - r8.n)} behind fifth place.`);
     return `${close()}
-      <div class="dr__h">${av(p, "av--lg")}<div><h3>${esc(nameOf(p))}</h3><p>${roleBadge(p)}<span style="font-size:13px;color:var(--ink3)">${esc(G[p.g] ? L(G[p.g]) : "")}${p.n ? `${G[p.g] ? " · " : ""}${esc(p.id)}` : ""}</span></p></div></div>
+      <div class="dr__h">${av(p, "av--lg")}<div><h3>${esc(nameOf(p))}</h3><p>${roleBadge(p)}<span style="font-size:13px;color:var(--ink3)">${esc(G[p.g] ? L(G[p.g]) : "")}${p.n ? `${G[p.g] ? " · " : ""}${esc(p.id)}` : ""}</span><button class="cpy" data-copy="${esc(pid)}">${ico("link")}${tx("複製這一頁的連結", "Copy link to this page")}</button></p></div></div>
       <div class="dr__b">
+        <div class="sumx">${sum.map(([l, v, sub, low]) => `<div><small>${l}</small><strong class="${low ? "low" : ""}">${v}</strong>${sub ? `<span>${sub}</span>` : ""}</div>`).join("")}</div>
         <div class="dcard"><h4><span>${tx("近 8 個週六，和全隊比", "Last 8 Saturdays, against the team")}</span><span>${tx("中間值", "Median")} ★ ${ref.mv} · ◆ ${ref.mo}</span></h4>
+          <p class="gap">${tx(`近 8 週 ${r8.n} 分，第 ${r8.r} / ${N} 名。`, `${ptsU(r8.n)} in 8 weeks, #${r8.r} of ${N}. `)}${gap8}</p>
           <div class="meters">${meter("★", s.c8.v, ref.xv, `${s.c8.v} / ${tx("最多", "top")} ${ref.xv}`, "var(--v)")}${meter("◆", s.c8.o, ref.xo, `${s.c8.o} / ${tx("最多", "top")} ${ref.xo}`, "var(--o)")}
             ${hasAtt ? meter(tx("出席", "Attend."), s.att8 || 0, 1, pct(s.att8 || 0), "var(--green)") + (s.log8 != null ? meter(tx("有寫", "Wrote"), s.log8, 1, pct(s.log8), "var(--teal)") : "") : ""}</div>
           ${seatNow ? `<div class="seat"><small>${tx("目前的跨區座位", "Current bridge seat")}</small><span><b>${esc(L(seatNow.b))}</b> · ${seatNow.have.length} / ${seatNow.b.areas.length} ${tx("區", "areas")}${seatNow.miss.length ? tx("；還缺 ", "; missing ") + areaList(seatNow.miss) : ""}</span></div>` : ""}
           ${grow ? `<div class="seat"><small>${tx("可以補的座位", "Seat they could grow into")}</small><span><b>${esc(L(grow.b))}</b> · ${tx("已有", "Has")} ${areaList(grow.have)}${tx("；還缺 ", "; missing ")}${areaList(grow.miss)}</span></div>` : ""}</div>
-        <div class="dcard"><h4><span>${tx("整季，已核定", "Season, confirmed")}</span><span>${ptsOf(es)} ${tx("分", "pts")}</span></h4>${ptsBar(es)}
-          <div class="cnt">${["v", "o", "q", "b"].filter(k => LV[k]).map(k => `<div><i class="lv lv--${k}" title="${esc(L(LV[k]))}">${LV[k].g}</i>${s.c[k]}</div>`).join("")}</div></div>
-        ${hasAtt || hasHrs ? `<div class="dcard"><h4><span>${tx("出席與時數", "Attendance and hours")}</span></h4>
-          <div class="facts">${hasAtt ? `<div><small>${tx("出席率", "Attendance")}</small><strong class="${attLow(s.att) ? "low" : ""}">${pct(s.att)}</strong></div><div><small>${tx("請假／缺席／遲到", "Exc./abs./late")}</small><strong>${s.E}/${s.A}/${s.Lt}</strong></div>` : ""}${hasHrs ? `<div><small>${tx("實體＋線上", "On site + online")}</small><strong>${s.on}+${s.off}h</strong></div>` : ""}</div>
-          ${hasAtt ? `<div class="astrip" aria-label="${tx("每週出席", "Attendance by week")}">${s.a.map(a => `<i class="s-${esc(a.s)}" title="${md(a.wk)} · ${{ P: tx("出席", "Present"), L: tx("遲到", "Late"), E: tx("請假", "Excused"), A: tx("缺席", "Absent") }[a.s] || esc(a.s)}"></i>`).join("")}</div>` : ""}
+        <div class="dcard"><h4><span>${tx("成長：整季累積的已核定分數", "Growth: confirmed points over the season")}</span><span>${tx("和全隊中間值比", "against the team median")}</span></h4>${growthSVG(pid, nameOf(p))}
+          <div class="leg" style="margin-top:6px"><span><i class="sw" style="background:var(--o)"></i>${esc(nameOf(p))}</span><span><i class="sw" style="background:var(--ink4)"></i>${tx("全隊中間值", "Team median")}</span></div></div>
+        ${(() => { const rc = researchOf(pid); if (!rc) return ""; const rqs = new Set(rc.map(c => c.rq).filter(Boolean));
+          return `<div class="dcard"><h4><span>${tx("研究貢獻", "Research")}</span><span>${tx(`${rc.length} 份來源・${rqs.size} 個研究問題`, `${rc.length} sources · ${rqs.size} questions`)}</span></h4>
+            ${rc.length ? `<ul class="bd-rc">${rc.slice(-3).reverse().map(c => `<li><small>${md(c.wk)}${c.rq ? ` · ${esc(c.rq)}` : ""}</small>${esc(c.take || c.src)}</li>`).join("")}</ul><p class="dr__more"><a href="research.html?who=${esc(pid)}#cards">${tx("看全部 →", "See all →")}</a></p>` : `<p class="bnote">${tx("還沒有研究卡。每週表單的「研究」部分填一筆就會出現在這裡。", "No research cards yet. Fill in the research part of the weekly form.")}</p>`}</div>`; })()}
+        ${(() => { const ps = photosOf(es).reverse(); if (!ps.length && !p.pf) return "";
+          return `<div class="dcard"><h4><span>${tx("照片", "Photos")}</span><span>${tx(`${ps.length} 張，存在 Drive`, `${ps.length} in Drive`)}</span></h4>
+            ${ps.length ? `<div class="bd-phs">${ps.slice(0, 12).map(x => photo(x.id, `${md(x.e.wk)} · ${x.e.what}`)).join("")}</div>` : ""}
+            <p class="dr__more">${p.pf && goodId(p.pf) ? `<a href="https://drive.google.com/drive/folders/${esc(p.pf)}" target="_blank" rel="noopener noreferrer">${tx("打開 Drive 照片資料夾 ↗", "Open the Drive photo folder ↗")}</a> · ` : ""}${tx("照片只存在 Drive，要用團隊帳號登入才看得到。", "Photos live only in Drive; sign in with a team account to see them.")}</p></div>`; })()}
+        <div class="dcard"><h4><span>${tx("整季，已核定", "Season, confirmed")}</span><span>${ptsU(ptsOf(es))}</span></h4>${ptsBar(es)}
+          <div class="cnt">${["v", "o", "q", "b"].filter(k => LV[k]).map(k => `<div title="${esc(L(LV[k]))}"><i class="lv lv--${k}">${LV[k].g}</i>${s.c[k]}</div>`).join("")}</div>
+          ${pend || redo ? `<p class="dr__more">${[pend ? tx(`另有 ${pend} 筆等組長核定`, `${pend} more waiting for the lead`) : "", redo ? tx(`${redo} 筆被退回重做`, `${redo} sent back`) : ""].filter(Boolean).join(tx("，", ", "))}${tx("。", ".")}</p>` : ""}</div>
+        ${hasAtt || hasHrs ? `<div class="dcard"><h4><span>${tx("出席與時數", "Attendance and hours")}</span>${hasAtt ? `<span>${tx(`請假 ${s.E}・缺席 ${s.A}・遲到 ${s.Lt}`, `Excused ${s.E}, absent ${s.A}, late ${s.Lt}`)}</span>` : ""}</h4>
+          ${hasAtt ? `<div class="astrip" aria-label="${tx("每週出席", "Attendance by week")}">${s.a.map(a => `<i class="s-${esc(a.s)}" title="${md(a.wk)} · ${{ P: tx("出席", "Present"), L: tx("遲到", "Late"), E: tx("請假", "Excused"), A: tx("缺席", "Absent") }[a.s] || esc(a.s)}"></i>`).join("")}</div>
+            <div class="leg" style="margin-top:8px"><span><i class="sw" style="background:var(--green)"></i>${tx("出席", "Present")}</span><span><i class="sw" style="background:var(--amber)"></i>${tx("遲到", "Late")}</span><span><i class="sw" style="background:var(--ink4)"></i>${tx("請假", "Excused")}</span><span><i class="sw" style="background:#fff;border:1.5px solid #E89A9A"></i>${tx("缺席", "Absent")}</span></div>` : ""}
           ${hasHrs ? `<div class="months">${s.hs.map(h => { const on = +h.on || 0, off = +h.off || 0;
             return `<div title="${mon(h.month)} · ${tx(`實體 ${on}、線上 ${off} 小時`, `${on} h on site, ${off} h online`)}"><b>${on + off}</b><span class="mb">${on ? `<i class="on" style="height:${(on / hmax) * 100}%"></i>` : ""}${off ? `<i class="off" style="height:${(off / hmax) * 100}%"></i>` : ""}</span>${mon(h.month)}</div>`; }).join("")}</div>
-          <div class="leg" style="margin-top:10px"><span><i class="sw" style="background:var(--blue)"></i>${tx("實體", "On site")}</span><span><i class="sw" style="background:var(--sky)"></i>${tx("線上", "Online")}</span></div>` : ""}</div>` : ""}
-        <div class="dcard"><h4><span>${tx("做了什麼", "What they did")}</span><span>${es.length}</span></h4>${tl ? `<ol class="tl">${tl}</ol>` : `<p class="bnote">${tx("還沒有紀錄。", "No entries yet.")}</p>`}</div>
+          <div class="leg" style="margin-top:10px"><span><i class="sw" style="background:var(--blue)"></i>${tx("實體時數", "On site")}</span><span><i class="sw" style="background:var(--sky)"></i>${tx("線上時數", "Online")}</span></div>` : ""}</div>` : ""}
+        <div class="dcard"><h4><span>${tx("每週做了什麼", "What they did, week by week")}</span><span>${es.length} ${tx("筆", es.length === 1 ? "entry" : "entries")}</span></h4>${tl ? `<ol class="tl">${tl}</ol>` : `<p class="bnote">${tx("還沒有紀錄。", "No entries yet.")}</p>`}</div>
+        <p class="dr__key">${"voqb".split("").filter(k => LV[k]).map(k => `${LV[k].g} ${esc(L(LV[k]))} ${ptsU(W[k])}`).join(" · ")}${tx("。淡色加虛線框的是還沒核定。", ". Faded with a dotted frame means not confirmed yet.")}</p>
       </div>`;
   };
   const taskDrawer = tid => {
@@ -392,36 +558,45 @@
   };
 
   // ================= page =================
+  // The board opens the page: its own title, then search, then the views. hub.js renders the rest below it.
   function renderHead() {
     const h = document.getElementById("bd-head"); if (!h) return;
-    let sub = "";
-    if (D) {
-      let upd = "";
-      if (D.updated && !isNaN(Date.parse(D.updated))) { const t = new Date(Date.parse(D.updated) + 8 * 36e5).toISOString(); upd = `${md(t.slice(0, 10))} ${t.slice(11, 16)}`; }   // Taipei time
-      sub = tx(`${D.people.length} 位隊員、${D.tasks.length} 個任務、${D.entries.length} 筆紀錄${upd ? `，資料更新於 ${upd}` : ""}。`,
-        `${D.people.length} members, ${D.tasks.length} tasks and ${D.entries.length} entries${upd ? `, updated ${upd}` : ""}.`);
-    }
-    const mock = RAW.mock === true ? `<span class="bd-mock">${tx("模擬資料", "Mock data")}</span>` : "";
-    h.innerHTML = `<div class="bd-top"><div><div class="bd-th"><h2 class="bd-title">${tx("貢獻看板", "Contribution board")}</h2>${mock}</div>${sub ? `<p class="bd-sub">${sub}</p>` : ""}</div></div>`;
+    let upd = "";
+    if (D.updated && !isNaN(Date.parse(D.updated))) { const t = new Date(Date.parse(D.updated) + 8 * 36e5).toISOString(); upd = `${md(t.slice(0, 10))} ${t.slice(11, 16)}`; }   // Taipei time
+    const eb = [RAW.season ? tx(`${RAW.season} 賽季`, `${RAW.season} season`) : "", tx(`${D.people.length} 位隊員`, `${D.people.length} members`), upd ? tx(`更新於 ${upd}`, `Updated ${upd}`) : ""].filter(Boolean);
+    h.innerHTML = `<div class="bd-hero"><p class="eyebrow">${eb.map(esc).join(" · ")}</p><h1 class="h1">${tx("誰做了什麼", "Who did what")}</h1>
+      <p class="lede">${tx("每個週六，每個人寫下自己做了什麼；組長週日核定，週日晚上更新到這裡。學生、老師和家長看到的是同一份紀錄。", "Every Saturday each student writes down what they did. Leads confirm on Sunday and this page updates that night. Students, teachers and parents all see the same record.")}</p>
+      ${RAW.mock === true ? `<p class="bd-mock">${tx("示範用：這是虛構的一季，人名和紀錄都是編的。", "Demo only: an invented season. Every name and entry is made up.")}</p>` : ""}
+      <div class="bd-find"><input class="q bd-q" id="bd-find" type="search" value="${esc(S.find)}" placeholder="${tx("找隊員：打名字", "Find a member: type a name")}" autocomplete="off" aria-label="${tx("找隊員", "Find a member")}"><div class="hits" id="bd-hits"></div></div></div>`;
+    hits();
+  }
+  function hits() {
+    const h = document.getElementById("bd-hits"); if (!h) return;
+    const q = S.find.trim().toLowerCase();
+    if (!q) { h.innerHTML = ""; return; }
+    const xs = D.people.filter(p => [p.n, p.ini, p.id].some(v => v && String(v).toLowerCase().includes(q))).sort(byName).slice(0, 8);
+    h.innerHTML = xs.length ? xs.map(p => `<button data-who="${esc(p.id)}">${av(p)}<span>${esc(nameOf(p))}</span><small>${esc(G[p.g] ? L(G[p.g]) : "")}</small></button>`).join("")
+      : `<p>${tx("找不到這個名字。", "No one by that name.")}</p>`;
   }
   function renderBody() {
     const b = document.getElementById("bd-body"); if (!b) return;
-    if (!D) return;
-    const ok = D.entries.filter(counted), last = D.weeks[D.weeks.length - 1];
-    const wrote = last ? new Set(D.entries.filter(e => e.wk === last).map(e => e.p)).size : 0;
-    const pulse = [[tx("任務", "Tasks"), `${D.tasks.filter(t => stOf(t) === "done").length}<em> / ${D.tasks.length} ${tx("完成", "done")}</em>`],
-      [tx("本季已核定 ★", "Confirmed ★ this season"), ok.filter(e => e.lv === "v").length], [tx("本季已核定 ◆", "Confirmed ◆ this season"), ok.filter(e => e.lv === "o").length],
-      ...(last ? [[tx(`${md(last)} 寫了紀錄`, `Wrote on ${md(last)}`), `${wrote}<em> / ${D.people.length}</em>`]] : [])];
     let view;
-    try { view = { map: vMap, areas: vAreas, value: vValue, people: vPeople, roles: vRoles, week: vWeek }[S.tab](); }
+    try { view = { home: vHome, map: vMap, areas: vAreas, value: vValue, people: vPeople, roles: vRoles, week: vWeek }[S.tab](); }
     catch (e) { if (window.console) console.error("[board]", e); view = `<p class="bd-notice bd-notice--err">${tx("這一頁顯示不出來。", "This view could not be shown.")} (${esc(e && e.message)})</p>`; }
-    b.innerHTML = `<div class="pulse">${pulse.map(([l, v]) => `<div><small>${l}</small><strong>${v}</strong></div>`).join("")}</div>
-      <nav class="tabs" role="tablist" aria-label="${tx("看板分頁", "Board views")}">${TABN.map(([k, z, e]) => `<button role="tab" data-tab="${k}" aria-selected="${S.tab === k}">${tx(z, e)}</button>`).join("")}</nav>
+    b.innerHTML = `<nav class="tabs" role="tablist" aria-label="${tx("看板分頁", "Board views")}">${TABN.map(([k, z, e]) => `<button role="tab" data-tab="${k}" aria-selected="${S.tab === k}">${tx(z, e)}</button>`).join("")}</nav>
       <div class="view" role="tabpanel">${view}</div>`;
     // On a phone the chosen tab or week can sit off-screen in its scrolling row; bring it to the middle.
     [[".tabs", "[aria-selected=true]"], [".wks", "[aria-pressed=true]"]].forEach(([r, s]) => { const row = b.querySelector(r), on = row && row.querySelector(s);
       if (on && row.scrollWidth > row.clientWidth) row.scrollLeft += on.getBoundingClientRect().left - row.getBoundingClientRect().left - (row.clientWidth - on.offsetWidth) / 2; });
   }
+  // Keep the address bar in step with the open tab and page, so any view can be shared or bookmarked.
+  function syncURL() {
+    try { const u = new URL(location.href); ["tab", "who", "task", "area"].forEach(k => u.searchParams.delete(k));
+      if (S.tab !== "home") u.searchParams.set("tab", S.tab);
+      if (S.drawer) { const k = Object.keys(S.drawer)[0]; u.searchParams.set(k, S.drawer[k]); }
+      history.replaceState(history.state, "", u.pathname + u.search + u.hash); } catch (e) { /* file:// or an old browser: the page still works */ }
+  }
+  let opener = null;
   function drawer() {
     const el = document.getElementById("bd-dr"); if (!el) return;
     const open = !!(S.drawer && D);
@@ -433,8 +608,12 @@
     el.setAttribute("aria-hidden", String(!open));
     root.classList.toggle("bd-open", open);
     document.documentElement.classList.toggle("bd-lock", open);
+    if (open) { const x = el.querySelector(".bd-x"); if (x) x.focus({ preventScroll: true }); }
+    else if (opener && document.contains(opener)) { opener.focus({ preventScroll: true }); opener = null; }
+    syncURL();
   }
   function render() { renderHead(); renderBody(); drawer(); }
+  const toBody = () => { const b = document.getElementById("bd-body"); if (b && b.getBoundingClientRect().top < 0) b.scrollIntoView({ block: "start" }); };
 
   try { load(RAW); } catch (e) { if (window.console) console.error("[board]", e); unread(); return; }
   root.innerHTML = `<div class="wrap"><div id="bd-head"></div><div id="bd-body"></div></div><div class="bd-scrim" data-close></div><aside class="bd-dr" id="bd-dr" aria-hidden="true" aria-label="${tx("詳細", "Details")}"></aside>`;
@@ -445,16 +624,25 @@
     const lb = e.target.closest("[data-lang]");
     if (lb && !root.contains(lb)) { if (lb.dataset.lang === "zh" || lb.dataset.lang === "en") { S.lang = lb.dataset.lang; render(); } return; }
     if (!root.contains(e.target)) return;
-    const b = e.target.closest("[data-tab],[data-vt],[data-grp],[data-range],[data-wk],[data-who],[data-task],[data-area],[data-close]");
+    const b = e.target.closest("[data-tab],[data-vt],[data-grp],[data-range],[data-wk],[data-gowk],[data-who],[data-task],[data-area],[data-close],[data-copy]");
     if (!b || !root.contains(b)) return;
     const d = b.dataset;
-    if (d.who) { S.drawer = { who: d.who }; return drawer(); }
-    if (d.task) { S.drawer = { task: d.task }; return drawer(); }
-    if (d.area) { S.drawer = { area: d.area }; return drawer(); }
+    if (d.copy) {
+      const url = location.origin + location.pathname + "?who=" + encodeURIComponent(d.copy), done = () => { b.lastChild.textContent = tx("已複製", "Copied"); };
+      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(url).then(done, () => window.prompt(tx("複製這個連結：", "Copy this link:"), url));
+      else window.prompt(tx("複製這個連結：", "Copy this link:"), url);
+      return;
+    }
+    if (d.who || d.task || d.area) { if (!S.drawer) opener = b; S.drawer = d.who ? { who: d.who } : d.task ? { task: d.task } : { area: d.area }; return drawer(); }
     if ("close" in d) { S.drawer = null; return drawer(); }
-    if (d.tab) S.tab = d.tab; else if (d.vt) S.vt = S.vt === d.vt ? "all" : d.vt;
+    const fromView = !b.closest(".tabs");
+    if (d.gowk) { S.tab = "week"; S.wk = +d.gowk; }
+    else if (d.tab) S.tab = d.tab; else if (d.vt) S.vt = S.vt === d.vt ? "all" : d.vt;
     else if (d.grp) S.grp = d.grp; else if (d.range) S.range = d.range; else if (d.wk) S.wk = +d.wk;
-    renderBody();
+    renderBody(); syncURL();
+    if (fromView && (d.tab || d.gowk)) toBody();
   });
+  root.addEventListener("input", e => { if (e.target.id === "bd-find") { S.find = e.target.value; hits(); } });
+  root.addEventListener("keydown", e => { if (e.target.id === "bd-find" && e.key === "Enter") { const f = document.querySelector("#bd-hits [data-who]"); if (f) f.click(); } });
   document.addEventListener("keydown", e => { if (e.key === "Escape" && S.drawer) { S.drawer = null; drawer(); } });
 })();
